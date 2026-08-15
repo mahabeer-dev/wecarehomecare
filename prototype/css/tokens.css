@@ -1,0 +1,118 @@
+/* ============================================================
+   We Care Home Care — design tokens
+   Brand: purple #AA69B3 · teal #3AA9BC · gold #F6B943
+   Light only. This is a product mock, not a document.
+   ============================================================ */
+
+:root {
+  /* ---- purple (primary) ---- */
+  --p-50:  #F9F3FB;
+  --p-100: #F0E3F4;
+  --p-200: #E0C7E8;
+  --p-300: #C99BD6;
+  --p-400: #B47FC6;
+  --p-500: #AA69B3;
+  --p-600: #8E4F9C;
+  --p-700: #713E7C;
+  --p-800: #4E2B56;
+
+  /* ---- teal (secondary / system actions) ---- */
+  --t-50:  #EAF6F8;
+  --t-100: #D4ECF1;
+  --t-200: #A7DAE4;
+  --t-300: #6FC3D3;
+  --t-400: #3AA9BC;
+  --t-500: #2A8FA0;
+  --t-600: #217585;
+  --t-700: #1A5A66;
+
+  /* ---- gold (warning / attention) ---- */
+  --g-50:  #FEF8EA;
+  --g-100: #FDEECD;
+  --g-200: #FBDD9B;
+  --g-300: #F6B943;
+  --g-400: #D89C26;
+  --g-500: #A9761A;
+  --g-600: #8C5E06;
+
+  /* ---- red (danger / overdue / blocked) ---- */
+  --r-50:  #FDEEEC;
+  --r-100: #FADCD7;
+  --r-200: #F2B6AD;
+  --r-400: #D9584A;
+  --r-500: #C0392B;
+  --r-600: #9C2C20;
+
+  /* ---- green (good / complete) ---- */
+  --gr-50:  #E9F7F0;
+  --gr-100: #CDEDDD;
+  --gr-400: #34A473;
+  --gr-500: #1E8E5A;
+  --gr-600: #166B44;
+
+  /* ---- neutrals, biased slightly toward the brand purple ---- */
+  --n-0:   #FFFFFF;
+  --n-25:  #FCFBFD;
+  --n-50:  #F8F6FA;
+  --n-100: #F1EDF4;
+  --n-200: #E4DEEA;
+  --n-300: #CFC7D7;
+  --n-400: #A79DB1;
+  --n-500: #7C7286;
+  --n-600: #5A5165;
+  --n-700: #413A4A;
+  --n-800: #2B2532;
+  --n-900: #1A1620;
+
+  /* ---- semantic ---- */
+  --bg:            var(--n-50);
+  --surface:       var(--n-0);
+  --surface-sunk:  var(--n-100);
+  --border:        var(--n-200);
+  --border-strong: var(--n-300);
+  --text:          var(--n-900);
+  --text-soft:     var(--n-600);
+  --text-mute:     var(--n-500);
+  --text-invert:   var(--n-0);
+
+  /* ---- type ---- */
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  --fs-xs:  11px;
+  --fs-sm:  12.5px;
+  --fs-md:  14px;
+  --fs-lg:  16px;
+  --fs-xl:  19px;
+  --fs-2xl: 24px;
+  --fs-3xl: 30px;
+
+  /* ---- space ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* ---- radius ---- */
+  --rad-sm: 4px;
+  --rad:    7px;
+  --rad-lg: 11px;
+  --rad-full: 999px;
+
+  /* ---- elevation ---- */
+  --sh-1: 0 1px 2px rgba(26,22,32,.06), 0 1px 1px rgba(26,22,32,.04);
+  --sh-2: 0 2px 6px rgba(26,22,32,.07), 0 1px 2px rgba(26,22,32,.05);
+  --sh-3: 0 8px 24px rgba(26,22,32,.10), 0 2px 6px rgba(26,22,32,.06);
+  --sh-4: 0 18px 48px rgba(26,22,32,.18), 0 4px 12px rgba(26,22,32,.10);
+
+  /* ---- layout ---- */
+  --sidebar-w: 232px;
+  --topbar-h: 58px;
+  --chrome-h: 64px;
+}

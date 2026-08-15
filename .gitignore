@@ -1,0 +1,15 @@
+# Internal working documents — not for the client repository.
+# These contain delivery risk analysis and commercial notes.
+PROJECT-IN-SIMPLE-WORDS.md
+SYSTEM-IN-SIMPLE-WORDS.md
+SYSTEM-IN-SIMPLE-WORDS.html
+
+# Tooling
+.claude/settings.local.json
+.vercel/
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp

@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>We Care Home Care — Flowcharts</title>
+
+<style>
+  :root {
+    --ground:#FBF9FC; --surface:#FFFFFF; --surface-alt:#F4EFF7;
+    --ink:#241B2A; --ink-soft:#574B60; --ink-mute:#897D90;
+    --rule:#E6DDEB; --rule-soft:#F0E9F3;
+    --plum:#7E4595; --plum-bright:#AA69B3; --plum-wash:#F3EAF6;
+    --teal:#217C8B; --teal-bright:#3AA9BC; --teal-wash:#E1F0F3;
+    --gold:#8C5E06; --gold-bright:#F6B943; --gold-wash:#FDF2DC;
+    --stop:#A33A32; --stop-wash:#FAEBE9;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#15111A; --surface:#1E1825; --surface-alt:#271F2E;
+    --ink:#EFE9F2; --ink-soft:#B7ABBF; --ink-mute:#8B8092;
+    --rule:#3A3146; --rule-soft:#282130;
+    --plum:#C793D6; --plum-bright:#B478C4; --plum-wash:#2F2338;
+    --teal:#5CC3D4; --teal-bright:#45AFC2; --teal-wash:#182D33;
+    --gold:#E9B45A; --gold-bright:#D9A03C; --gold-wash:#332818;
+    --stop:#E58C82; --stop-wash:#35201D;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#15111A; --surface:#1E1825; --surface-alt:#271F2E;
+    --ink:#EFE9F2; --ink-soft:#B7ABBF; --ink-mute:#8B8092;
+    --rule:#3A3146; --rule-soft:#282130;
+    --plum:#C793D6; --plum-bright:#B478C4; --plum-wash:#2F2338;
+    --teal:#5CC3D4; --teal-bright:#45AFC2; --teal-wash:#182D33;
+    --gold:#E9B45A; --gold-bright:#D9A03C; --gold-wash:#332818;
+    --stop:#E58C82; --stop-wash:#35201D;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    background:var(--ground); color:var(--ink); font-family:var(--sans);
+    font-size:17px; line-height:1.6; margin:0; padding:0 20px 90px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:46px}
+
+  .masthead{display:flex; flex-direction:column; gap:12px; padding:56px 0 22px}
+  .masthead::after{
+    content:""; display:block; height:4px; margin-top:10px;
+    background:linear-gradient(90deg,var(--plum-bright) 0 33.33%,var(--teal-bright) 33.33% 66.66%,var(--gold-bright) 66.66% 100%);
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--plum); margin:0;
+  }
+  h1{
+    font-family:var(--serif); font-size:clamp(32px,5.6vw,46px); line-height:1.08;
+    font-weight:600; letter-spacing:-.015em; margin:0;
+  }
+
+  section{display:flex; flex-direction:column; gap:14px; scroll-margin-top:20px}
+
+  .sec-head{display:flex; flex-direction:column; gap:5px; padding-bottom:8px; border-bottom:1px solid var(--rule)}
+
+  h2{
+    font-family:var(--serif); font-size:clamp(23px,3.4vw,29px); line-height:1.15;
+    font-weight:600; letter-spacing:-.01em; margin:0;
+  }
+
+  .fig{border:1px solid var(--rule); background:var(--surface); overflow-x:auto; padding:20px}
+
+  svg.dg{display:block; width:100%; height:auto; min-width:620px}
+  svg.dg.wide{min-width:820px}
+
+  .dg text{font-family:var(--sans)}
+  .dg .box{fill:var(--surface); stroke:var(--rule); stroke-width:1.5}
+  .dg .box-p{fill:var(--plum-wash); stroke:var(--plum-bright); stroke-width:1.5}
+  .dg .box-t{fill:var(--teal-wash); stroke:var(--teal-bright); stroke-width:1.5}
+  .dg .box-g{fill:var(--gold-wash); stroke:var(--gold-bright); stroke-width:1.5}
+  .dg .box-s{fill:var(--stop-wash); stroke:var(--stop); stroke-width:1.5}
+  .dg .grp{fill:var(--surface-alt); stroke:var(--rule); stroke-width:1; stroke-dasharray:5 4}
+  .dg .t1{font-size:14.5px; fill:var(--ink); font-weight:650}
+  .dg .t2{font-size:13px; fill:var(--ink-soft)}
+  .dg .t3{font-size:15.5px; fill:var(--ink); font-weight:650}
+  .dg .tm{font-family:var(--mono); font-size:10.5px; fill:var(--ink-mute); letter-spacing:.1em}
+  .dg .tp{font-size:13px; fill:var(--plum); font-weight:650}
+  .dg .tt{font-size:13px; fill:var(--teal); font-weight:650}
+  .dg .tg{font-size:13px; fill:var(--gold); font-weight:650}
+  .dg .tx{font-size:13px; fill:var(--stop); font-weight:650}
+  .dg .e{stroke:var(--ink-mute); stroke-width:1.8; fill:none; marker-end:url(#ar)}
+  .dg .et{stroke:var(--teal-bright); stroke-width:1.8; fill:none; marker-end:url(#art)}
+  .dg .en{stroke:var(--ink-mute); stroke-width:1.8; fill:none}
+  .dg .etn{stroke:var(--teal-bright); stroke-width:1.8; fill:none}
+  .dg .ed{stroke:var(--ink-mute); stroke-width:1.5; fill:none; stroke-dasharray:5 4; marker-end:url(#ar)}
+  .ah{fill:var(--ink-mute)} .aht{fill:var(--teal-bright)}
+
+  .key-row{display:flex; flex-wrap:wrap; gap:8px 22px; padding:14px 18px; background:var(--surface); border:1px solid var(--rule)}
+  .key{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink-soft)}
+  .key i{width:26px; height:16px; border:1.5px solid var(--rule); background:var(--surface); display:block; flex:none}
+  .key i.p{background:var(--plum-wash); border-color:var(--plum-bright)}
+  .key i.t{background:var(--teal-wash); border-color:var(--teal-bright)}
+  .key i.g{background:var(--gold-wash); border-color:var(--gold-bright); transform:skewX(-15deg)}
+  .key i.s{background:var(--stop-wash); border-color:var(--stop)}
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:18px;
+    font-family:var(--mono); font-size:11.5px; line-height:1.8; color:var(--ink-mute);
+  }
+
+  @media (max-width:640px){ body{font-size:16px} }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" class="ah"/>
+    </marker>
+    <marker id="art" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" class="aht"/>
+    </marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">We Care Home Care · Operations Management System</p>
+    <h1>Flowcharts</h1>
+  </header>
+
+  <div class="key-row">
+    <span class="key"><i></i> a record or step</span>
+    <span class="key"><i class="p"></i> a person does this</span>
+    <span class="key"><i class="t"></i> the system does this by itself</span>
+    <span class="key"><i class="g"></i> a decision</span>
+    <span class="key"><i class="s"></i> an alert or a block</span>
+  </div>
+
+  <!-- ============ 1 WHOLE SYSTEM ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">01</p><h2>The whole system</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 470" role="img" aria-label="Whole system flow from login to reports">
+
+        <rect class="box-p" x="20" y="196" width="150" height="60" rx="4"/>
+        <text class="t1" x="95" y="222" text-anchor="middle">Staff logs in</text>
+        <text class="t2" x="95" y="242" text-anchor="middle">6–10 people only</text>
+
+        <rect class="box-t" x="212" y="196" width="150" height="60" rx="4"/>
+        <text class="t1" x="287" y="222" text-anchor="middle">Dashboard</text>
+        <text class="t2" x="287" y="242" text-anchor="middle">what is due &amp; late</text>
+
+        <rect class="grp" x="410" y="20" width="300" height="430" rx="4"/>
+        <text class="tm" x="424" y="42">THEY OPEN A MODULE</text>
+
+        <rect class="box" x="426" y="56" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="80" text-anchor="middle">Clients</text>
+        <rect class="box" x="426" y="102" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="126" text-anchor="middle">Caregivers</text>
+        <rect class="box" x="426" y="148" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="172" text-anchor="middle">Tasks</text>
+        <rect class="box-g" x="426" y="194" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="218" text-anchor="middle">Budget &amp; authorisations</text>
+        <rect class="box" x="426" y="240" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="264" text-anchor="middle">Incidents</text>
+        <rect class="box" x="426" y="286" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="310" text-anchor="middle">Hospitalisations</text>
+        <rect class="box" x="426" y="332" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="356" text-anchor="middle">Quality Improvement</text>
+        <rect class="box" x="426" y="378" width="268" height="38" rx="4"/>
+        <text class="t1" x="560" y="402" text-anchor="middle">Oversight reviews</text>
+
+        <rect class="box-t" x="756" y="120" width="184" height="70" rx="4"/>
+        <text class="t1" x="848" y="148" text-anchor="middle">System calculates</text>
+        <text class="t2" x="848" y="168" text-anchor="middle">and raises alerts</text>
+
+        <rect class="box-t" x="756" y="216" width="184" height="70" rx="4"/>
+        <text class="t1" x="848" y="244" text-anchor="middle">Reminders</text>
+        <text class="t2" x="848" y="264" text-anchor="middle">email + dashboard</text>
+
+        <rect class="box-t" x="756" y="312" width="184" height="70" rx="4"/>
+        <text class="t1" x="848" y="340" text-anchor="middle">Reports</text>
+        <text class="t2" x="848" y="360" text-anchor="middle">Excel · CSV · PDF</text>
+
+        <path class="e" d="M172 226 L206 226"/>
+        <path class="e" d="M364 226 L404 226"/>
+        <path class="e" d="M712 235 L740 235 L740 155 L750 155"/>
+        <path class="e" d="M740 235 L750 235"/>
+        <path class="e" d="M740 235 L740 347 L750 347"/>
+        <path class="et" d="M848 100 L848 60 L287 60 L287 190"/>
+        <text class="tt" x="470" y="50" text-anchor="middle">alerts come back to the dashboard</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 2 REAL EXAMPLE ============ -->
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">02 · one client, one year</p>
+      <h2>Real example — Maria Lopez</h2>
+    </div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 1040" role="img" aria-label="One client walked through the whole system across a year">
+
+        <text class="tm" x="20" y="30">JANUARY</text>
+        <rect class="box-p" x="20" y="42" width="230" height="66" rx="4"/>
+        <text class="t1" x="36" y="66">Maria Lopez imported</text>
+        <text class="t2" x="36" y="86">from an Excel file</text>
+        <text class="t2" x="36" y="102">Georgia agency · NOW waiver</text>
+
+        <rect class="box-p" x="300" y="42" width="250" height="66" rx="4"/>
+        <text class="t1" x="316" y="66">Authorisation entered</text>
+        <text class="t2" x="316" y="86">2,000 units · $6.25 each</text>
+        <text class="t2" x="316" y="102">1 Jan – 31 Dec</text>
+
+        <rect class="box-t" x="600" y="42" width="250" height="66" rx="4"/>
+        <text class="t1" x="616" y="66">System stores the budget</text>
+        <text class="t2" x="616" y="86">500 hours available</text>
+        <text class="t2" x="616" y="102">0% used</text>
+
+        <path class="e" d="M252 75 L294 75"/>
+        <path class="e" d="M552 75 L594 75"/>
+
+        <text class="tm" x="20" y="158">EVERY MONTH</text>
+        <rect class="box-p" x="20" y="170" width="230" height="60" rx="4"/>
+        <text class="t1" x="36" y="194">Office types hours used</text>
+        <text class="t2" x="36" y="214">last month: 45 hours</text>
+
+        <rect class="box-t" x="300" y="170" width="250" height="60" rx="4"/>
+        <text class="t1" x="316" y="194">System recalculates</text>
+        <text class="t2" x="316" y="214">180 units · 9% used · 455 hrs left</text>
+
+        <rect class="box" x="600" y="170" width="250" height="60" rx="4"/>
+        <text class="t2" x="616" y="194">no alert yet —</text>
+        <text class="t2" x="616" y="214">still under 75%</text>
+
+        <path class="e" d="M252 200 L294 200"/>
+        <path class="e" d="M552 200 L594 200"/>
+        <path class="ed" d="M135 112 L135 164"/>
+
+        <text class="tm" x="20" y="282">3 APRIL</text>
+        <rect class="box-p" x="20" y="294" width="230" height="60" rx="4"/>
+        <text class="t1" x="36" y="318">Maria falls at home</text>
+        <text class="t2" x="36" y="338">incident logged</text>
+
+        <rect class="box-p" x="300" y="294" width="250" height="60" rx="4"/>
+        <text class="t1" x="316" y="318">Nurse assigned follow-up</text>
+        <text class="t2" x="316" y="338">due in 7 days</text>
+
+        <rect class="box-s" x="600" y="294" width="250" height="60" rx="4"/>
+        <text class="t1" x="616" y="318">10 April — still not done</text>
+        <text class="t2" x="616" y="338">the system chases it</text>
+
+        <path class="e" d="M252 324 L294 324"/>
+        <path class="e" d="M552 324 L594 324"/>
+
+        <text class="tm" x="20" y="406">12 APRIL</text>
+        <rect class="box-p" x="20" y="418" width="230" height="60" rx="4"/>
+        <text class="t1" x="36" y="442">Maria goes to hospital</text>
+        <text class="t2" x="36" y="462">admission recorded</text>
+
+        <rect class="box-p" x="300" y="418" width="250" height="60" rx="4"/>
+        <text class="t1" x="316" y="442">16 April — discharged</text>
+        <text class="t2" x="316" y="462">discharge papers attached</text>
+
+        <rect class="box-t" x="600" y="418" width="250" height="60" rx="4"/>
+        <text class="t1" x="616" y="442">Nurse visit auto-required</text>
+        <text class="t2" x="616" y="462">policy: every return home</text>
+
+        <path class="e" d="M252 448 L294 448"/>
+        <path class="e" d="M552 448 L594 448"/>
+
+        <text class="tm" x="20" y="530">18 APRIL</text>
+        <rect class="box-p" x="20" y="542" width="230" height="76" rx="4"/>
+        <text class="t1" x="36" y="566">Nurse visits Maria</text>
+        <text class="t2" x="36" y="586">finds a new medication</text>
+        <text class="t2" x="36" y="604">ordered by the doctor</text>
+
+        <rect class="box-t" x="300" y="542" width="250" height="76" rx="4"/>
+        <text class="t1" x="316" y="566">Two tasks created</text>
+        <text class="t2" x="316" y="586">1 · review Healthcare Plan</text>
+        <text class="t2" x="316" y="604">2 · review Risk Mitigation Plan</text>
+
+        <rect class="box-p" x="600" y="542" width="250" height="76" rx="4"/>
+        <text class="t1" x="616" y="566">Both done</text>
+        <text class="t2" x="616" y="586">hospital stay can now close</text>
+        <text class="t2" x="616" y="604">Maria back in service</text>
+
+        <path class="e" d="M252 580 L294 580"/>
+        <path class="e" d="M552 580 L594 580"/>
+
+        <text class="tm" x="20" y="670">30 APRIL</text>
+        <rect class="box-p" x="20" y="682" width="230" height="60" rx="4"/>
+        <text class="t1" x="36" y="706">A third incident logged</text>
+        <text class="t2" x="36" y="726">3 for Maria this month</text>
+
+        <path class="box-g" d="M300 712 L420 676 L540 712 L420 748 Z"/>
+        <text class="tg" x="420" y="708" text-anchor="middle">more than 2</text>
+        <text class="tg" x="420" y="726" text-anchor="middle">in one month?</text>
+
+        <rect class="box-t" x="600" y="682" width="250" height="60" rx="4"/>
+        <text class="t1" x="616" y="706">Quality Improvement opens</text>
+        <text class="t2" x="616" y="726">by itself · nothing re-typed</text>
+
+        <path class="e" d="M252 712 L294 712"/>
+        <path class="e" d="M542 712 L594 712"/>
+        <text class="tm" x="550" y="702">YES</text>
+
+        <text class="tm" x="20" y="794">SEPTEMBER</text>
+        <rect class="box-p" x="20" y="806" width="230" height="60" rx="4"/>
+        <text class="t1" x="36" y="830">Monthly hours entered</text>
+        <text class="t2" x="36" y="850">running total 1,500 units</text>
+
+        <rect class="box-t" x="300" y="806" width="250" height="60" rx="4"/>
+        <text class="t1" x="316" y="830">System works out 75%</text>
+        <text class="t2" x="316" y="850">125 hours left</text>
+
+        <rect class="box-s" x="600" y="806" width="250" height="60" rx="4"/>
+        <text class="t1" x="616" y="830">Budget alert fires</text>
+        <text class="t2" x="616" y="850">again at 90% and 100%</text>
+
+        <path class="e" d="M252 836 L294 836"/>
+        <path class="e" d="M552 836 L594 836"/>
+
+        <text class="tm" x="20" y="918">NOVEMBER</text>
+        <rect class="box-p" x="20" y="930" width="230" height="60" rx="4"/>
+        <text class="t1" x="36" y="954">Someone enters 60 units</text>
+        <text class="t2" x="36" y="974">only 40 units remain</text>
+
+        <rect class="box-s" x="300" y="930" width="550" height="60" rx="4"/>
+        <text class="t1" x="316" y="954">Blocked with a warning before it saves</text>
+        <text class="t2" x="316" y="974">this is what stops unpaid work being delivered</text>
+
+        <path class="e" d="M252 960 L294 960"/>
+
+        <text class="tm" x="20" y="1026">MARIA IS INVENTED — THE NUMBERS SHOW HOW THE CALCULATION BEHAVES</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 3 LOGIN ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">03</p><h2>Who sees what</h2></div>
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 960 280" role="img" aria-label="Login and agency scoping">
+        <rect class="box-p" x="20" y="102" width="160" height="60" rx="4"/>
+        <text class="t1" x="100" y="128" text-anchor="middle">Log in</text>
+        <text class="t2" x="100" y="148" text-anchor="middle">email + password</text>
+
+        <path class="box-g" d="M240 132 L360 92 L480 132 L360 172 Z"/>
+        <text class="tg" x="360" y="128" text-anchor="middle">Super Admin?</text>
+        <text class="t2" x="360" y="147" text-anchor="middle">the owner</text>
+
+        <rect class="box" x="560" y="30" width="380" height="60" rx="4"/>
+        <text class="t1" x="580" y="56">Sees both agencies</text>
+        <text class="t2" x="580" y="76">Mississippi and Georgia · can switch</text>
+
+        <rect class="box" x="560" y="174" width="380" height="60" rx="4"/>
+        <text class="t1" x="580" y="200">Sees one agency only</text>
+        <text class="t2" x="580" y="220">the other agency's clients are invisible</text>
+
+        <path class="e" d="M182 132 L234 132"/>
+        <path class="e" d="M420 108 L500 60 L554 60"/>
+        <text class="tm" x="432" y="82">YES</text>
+        <path class="e" d="M420 156 L500 204 L554 204"/>
+        <text class="tm" x="432" y="192">NO</text>
+
+        <rect class="box" x="20" y="200" width="160" height="56" rx="4" stroke-dasharray="5 4"/>
+        <text class="t1" x="100" y="226" text-anchor="middle">150 caregivers</text>
+        <text class="t2" x="100" y="246" text-anchor="middle">never log in</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 4 CLIENT ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">04</p><h2>Adding a client</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 330" role="img" aria-label="Client import and what attaches to a client">
+        <rect class="box-p" x="20" y="30" width="180" height="56" rx="4"/>
+        <text class="t1" x="110" y="54" text-anchor="middle">Excel / CSV file</text>
+        <text class="t2" x="110" y="74" text-anchor="middle">300 clients at once</text>
+
+        <rect class="box-t" x="250" y="30" width="180" height="56" rx="4"/>
+        <text class="t1" x="340" y="54" text-anchor="middle">System checks it</text>
+        <text class="t2" x="340" y="74" text-anchor="middle">errors + duplicates</text>
+
+        <path class="box-g" d="M480 58 L586 26 L692 58 L586 90 Z"/>
+        <text class="tg" x="586" y="54" text-anchor="middle">Looks right?</text>
+        <text class="t2" x="586" y="73" text-anchor="middle">preview shown</text>
+
+        <rect class="box-p" x="742" y="30" width="198" height="56" rx="4"/>
+        <text class="t1" x="841" y="54" text-anchor="middle">Client created</text>
+        <text class="t2" x="841" y="74" text-anchor="middle">in one agency</text>
+
+        <rect class="box-s" x="480" y="122" width="212" height="46" rx="4"/>
+        <text class="t2" x="586" y="150" text-anchor="middle">fix the file and re-upload</text>
+
+        <path class="e" d="M202 58 L244 58"/>
+        <path class="e" d="M432 58 L474 58"/>
+        <path class="e" d="M694 58 L736 58"/>
+        <text class="tm" x="700" y="48">YES</text>
+        <path class="e" d="M586 92 L586 116"/>
+        <text class="tm" x="598" y="110">NO</text>
+
+        <text class="tm" x="20" y="212">EVERY CLIENT THEN CARRIES</text>
+        <rect class="box" x="20" y="224" width="222" height="72" rx="4"/>
+        <text class="t1" x="36" y="250">Service agreement</text>
+        <text class="t2" x="36" y="270">the contract</text>
+        <text class="t2" x="36" y="288">expires on a date</text>
+
+        <rect class="box" x="262" y="224" width="222" height="72" rx="4"/>
+        <text class="t1" x="278" y="250">Prior authorisations</text>
+        <text class="t2" x="278" y="270">permission to bill</text>
+        <text class="t2" x="278" y="288">one per service</text>
+
+        <rect class="box" x="504" y="224" width="222" height="72" rx="4"/>
+        <text class="t1" x="520" y="250">Waiver checklist</text>
+        <text class="t2" x="520" y="270">the required papers</text>
+        <text class="t2" x="520" y="288">on file / missing / expired</text>
+
+        <rect class="box" x="746" y="224" width="194" height="72" rx="4"/>
+        <text class="t1" x="762" y="250">Link to the EMR</text>
+        <text class="t2" x="762" y="270">opens their chart</text>
+        <text class="t2" x="762" y="288">in a new tab</text>
+
+        <path class="e" d="M841 88 L841 190 L131 190 L131 218"/>
+        <path class="e" d="M373 190 L373 218"/>
+        <path class="e" d="M615 190 L615 218"/>
+        <path class="e" d="M843 190 L843 218"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 5 CAREGIVER ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">05</p><h2>Caregiver papers that expire</h2></div>
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 960 300" role="img" aria-label="Caregiver credential expiry flow">
+        <rect class="box-p" x="20" y="110" width="180" height="70" rx="4"/>
+        <text class="t1" x="110" y="140" text-anchor="middle">Caregiver added</text>
+        <text class="t2" x="110" y="162" text-anchor="middle">with their papers</text>
+
+        <rect class="box" x="256" y="24" width="220" height="40" rx="4"/>
+        <text class="t1" x="272" y="49">Driver's licence</text>
+        <rect class="box" x="256" y="72" width="220" height="40" rx="4"/>
+        <text class="t1" x="272" y="97">CPR / First Aid</text>
+        <rect class="box" x="256" y="120" width="220" height="40" rx="4"/>
+        <text class="t1" x="272" y="145">Annual training</text>
+        <rect class="box" x="256" y="168" width="220" height="40" rx="4"/>
+        <text class="t1" x="272" y="193">Background check</text>
+        <rect class="box" x="256" y="216" width="220" height="40" rx="4"/>
+        <text class="t1" x="272" y="241">Professional licence</text>
+
+        <rect class="box-t" x="536" y="96" width="180" height="88" rx="4"/>
+        <text class="t1" x="626" y="126" text-anchor="middle">System watches</text>
+        <text class="t1" x="626" y="148" text-anchor="middle">every expiry date</text>
+        <text class="t2" x="626" y="170" text-anchor="middle">60 · 30 · 14 · 7 days before</text>
+
+        <rect class="box-s" x="776" y="72" width="164" height="60" rx="4"/>
+        <text class="t1" x="858" y="98" text-anchor="middle">Alert</text>
+        <text class="t2" x="858" y="118" text-anchor="middle">expiring soon</text>
+
+        <rect class="box-p" x="776" y="152" width="164" height="60" rx="4"/>
+        <text class="t1" x="858" y="178" text-anchor="middle">Renewed</text>
+        <text class="t2" x="858" y="198" text-anchor="middle">old copy kept</text>
+
+        <path class="e" d="M202 145 L230 145 L230 44 L250 44"/>
+        <path class="e" d="M230 92 L250 92"/>
+        <path class="e" d="M230 140 L250 140"/>
+        <path class="e" d="M230 145 L230 188 L250 188"/>
+        <path class="e" d="M230 188 L230 236 L250 236"/>
+        <path class="e" d="M478 140 L530 140"/>
+        <path class="e" d="M718 122 L748 122 L748 102 L770 102"/>
+        <path class="e" d="M748 122 L748 182 L770 182"/>
+        <path class="ed" d="M858 212 L858 274 L626 274 L626 190"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 6 BUDGET ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">06</p><h2>Budget — Maria's numbers</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 420" role="img" aria-label="Budget calculation with real numbers">
+        <rect class="box-p" x="20" y="30" width="250" height="90" rx="4"/>
+        <text class="tm" x="36" y="52">ENTERED ONCE</text>
+        <text class="t1" x="36" y="76">2,000 units authorised</text>
+        <text class="t1" x="36" y="98">$6.25 per 15 minutes</text>
+        <text class="t2" x="36" y="114">1 Jan – 31 Dec</text>
+
+        <rect class="box-p" x="20" y="160" width="250" height="70" rx="4"/>
+        <text class="tm" x="36" y="182">ENTERED EVERY MONTH</text>
+        <text class="t1" x="36" y="208">Hours used last month</text>
+        <text class="t2" x="36" y="224">typed in by the office</text>
+
+        <rect class="box-t" x="340" y="70" width="250" height="150" rx="4"/>
+        <text class="tm" x="356" y="94">SYSTEM WORKS OUT</text>
+        <text class="t1" x="356" y="122">units used · units left</text>
+        <text class="t1" x="356" y="148">dollars used · dollars left</text>
+        <text class="t3" x="356" y="180">percentage used</text>
+        <text class="t2" x="356" y="202">nobody calculates by hand</text>
+
+        <rect class="box-g" x="666" y="42" width="274" height="42" rx="4"/>
+        <text class="t1" x="682" y="68">75% used → alert</text>
+        <rect class="box-g" x="666" y="94" width="274" height="42" rx="4"/>
+        <text class="t1" x="682" y="120">90% used → alert</text>
+        <rect class="box-s" x="666" y="146" width="274" height="42" rx="4"/>
+        <text class="t1" x="682" y="172">100% → budget gone</text>
+        <rect class="box-g" x="666" y="198" width="274" height="42" rx="4"/>
+        <text class="t1" x="682" y="224">authorisation about to expire</text>
+
+        <path class="e" d="M272 96 L300 96 L300 130 L334 130"/>
+        <path class="e" d="M272 195 L300 195 L300 160"/>
+        <path class="et" d="M592 145 L630 145 L630 63 L660 63"/>
+        <path class="et" d="M630 115 L660 115"/>
+        <path class="et" d="M630 145 L630 167 L660 167"/>
+        <path class="et" d="M630 167 L630 219 L660 219"/>
+
+        <path class="box-g" d="M340 320 L470 282 L600 320 L470 358 Z"/>
+        <text class="tg" x="470" y="315" text-anchor="middle">Entering 60 units</text>
+        <text class="tg" x="470" y="334" text-anchor="middle">but only 40 left?</text>
+
+        <rect class="box-s" x="666" y="290" width="274" height="60" rx="4"/>
+        <text class="t1" x="682" y="316">Stopped with a warning</text>
+        <text class="t2" x="682" y="336">before anything is saved</text>
+
+        <rect class="box" x="20" y="290" width="250" height="60" rx="4"/>
+        <text class="t1" x="36" y="316">Saved</text>
+        <text class="t2" x="36" y="336">totals update instantly</text>
+
+        <path class="e" d="M602 320 L660 320"/>
+        <text class="tm" x="608" y="310">YES</text>
+        <path class="e" d="M338 320 L276 320"/>
+        <text class="tm" x="286" y="310">NO</text>
+        <path class="e" d="M470 224 L470 276"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 7 INCIDENT ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">07</p><h2>An incident</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 330" role="img" aria-label="Incident flow with ageing alert and QI trigger">
+        <rect class="box-p" x="20" y="40" width="164" height="60" rx="4"/>
+        <text class="t1" x="102" y="66" text-anchor="middle">Maria falls</text>
+        <text class="t2" x="102" y="86" text-anchor="middle">incident logged</text>
+
+        <rect class="box-p" x="220" y="40" width="164" height="60" rx="4"/>
+        <text class="t1" x="302" y="66" text-anchor="middle">Nurse assigned</text>
+        <text class="t2" x="302" y="86" text-anchor="middle">follow-up due</text>
+
+        <rect class="box-p" x="420" y="40" width="164" height="60" rx="4"/>
+        <text class="t1" x="502" y="66" text-anchor="middle">Investigated</text>
+        <text class="t2" x="502" y="86" text-anchor="middle">what was fixed</text>
+
+        <rect class="box-p" x="620" y="40" width="164" height="60" rx="4"/>
+        <text class="t1" x="702" y="66" text-anchor="middle">Closed</text>
+        <text class="t2" x="702" y="86" text-anchor="middle">papers attached</text>
+
+        <path class="e" d="M186 70 L214 70"/>
+        <path class="e" d="M386 70 L414 70"/>
+        <path class="e" d="M586 70 L614 70"/>
+
+        <rect class="box-s" x="220" y="150" width="364" height="56" rx="4"/>
+        <text class="t1" x="236" y="176">Nothing done after 7 days?</text>
+        <text class="t2" x="236" y="196">the system chases it</text>
+
+        <path class="e" d="M302 102 L302 144"/>
+
+        <rect class="box-g" x="220" y="244" width="364" height="56" rx="4"/>
+        <text class="t1" x="236" y="270">3rd incident for Maria this month</text>
+        <text class="t2" x="236" y="290">the limit is 2, and it is adjustable</text>
+
+        <rect class="box-t" x="640" y="244" width="300" height="56" rx="4"/>
+        <text class="t1" x="656" y="270">Quality Improvement opens</text>
+        <text class="t2" x="656" y="290">by itself</text>
+
+        <path class="e" d="M102 102 L102 272 L214 272"/>
+        <path class="e" d="M586 272 L634 272"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 8 HOSPITAL ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">08</p><h2>A hospital stay</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 400" role="img" aria-label="Hospitalisation and nurse follow-up flow">
+        <rect class="box-p" x="20" y="40" width="180" height="60" rx="4"/>
+        <text class="t1" x="110" y="66" text-anchor="middle">Maria admitted</text>
+        <text class="t2" x="110" y="86" text-anchor="middle">hospital + reason</text>
+
+        <rect class="box-p" x="240" y="40" width="180" height="60" rx="4"/>
+        <text class="t1" x="330" y="66" text-anchor="middle">Discharged</text>
+        <text class="t2" x="330" y="86" text-anchor="middle">papers attached</text>
+
+        <path class="box-g" d="M470 70 L600 32 L730 70 L600 108 Z"/>
+        <text class="tg" x="600" y="66" text-anchor="middle">Nurse visit</text>
+        <text class="tg" x="600" y="85" text-anchor="middle">needed?</text>
+
+        <rect class="box" x="780" y="40" width="160" height="60" rx="4"/>
+        <text class="t1" x="860" y="66" text-anchor="middle">Skipped</text>
+        <text class="t2" x="860" y="86" text-anchor="middle">reason required</text>
+
+        <path class="e" d="M202 70 L234 70"/>
+        <path class="e" d="M422 70 L464 70"/>
+        <path class="e" d="M732 70 L774 70"/>
+        <text class="tm" x="740" y="60">NO</text>
+
+        <rect class="box-p" x="240" y="164" width="300" height="60" rx="4"/>
+        <text class="t1" x="256" y="190">Nurse visits within days</text>
+        <text class="t2" x="256" y="210">yes is the default for everyone</text>
+
+        <path class="e" d="M600 110 L600 140 L390 140 L390 158"/>
+        <text class="tm" x="440" y="132">YES — UNLESS WAIVED</text>
+
+        <rect class="box-t" x="240" y="256" width="300" height="76" rx="4"/>
+        <text class="t1" x="256" y="282">Tasks from what she finds</text>
+        <text class="t2" x="256" y="302">review Healthcare Plan</text>
+        <text class="t2" x="256" y="320">review Risk Mitigation Plan</text>
+
+        <rect class="box-s" x="600" y="256" width="340" height="76" rx="4"/>
+        <text class="t1" x="616" y="282">Hospital stay stays open</text>
+        <text class="t2" x="616" y="302">until the visit and tasks are done —</text>
+        <text class="t2" x="616" y="320">only then is Maria back in service</text>
+
+        <path class="e" d="M390 226 L390 250"/>
+        <path class="e" d="M542 294 L594 294"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 9 QI ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">09</p><h2>Quality Improvement</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 300" role="img" aria-label="Quality improvement flow">
+        <rect class="box-g" x="20" y="30" width="230" height="48" rx="4"/>
+        <text class="t1" x="36" y="60">3 incidents in a month</text>
+        <rect class="box-g" x="20" y="88" width="230" height="48" rx="4"/>
+        <text class="t1" x="36" y="118">3 hospital stays in a month</text>
+        <rect class="box-p" x="20" y="146" width="230" height="48" rx="4"/>
+        <text class="t1" x="36" y="176">a manager spots a pattern</text>
+
+        <rect class="box-t" x="320" y="88" width="200" height="48" rx="4"/>
+        <text class="t1" x="420" y="118" text-anchor="middle">QI item opens</text>
+
+        <rect class="box-p" x="580" y="88" width="200" height="48" rx="4"/>
+        <text class="t1" x="680" y="118" text-anchor="middle">A plan to fix it</text>
+
+        <path class="box-g" d="M480 240 L600 204 L720 240 L600 276 Z"/>
+        <text class="tg" x="600" y="236" text-anchor="middle">Did it work?</text>
+        <text class="t2" x="600" y="255" text-anchor="middle">reviewed later</text>
+
+        <rect class="box-p" x="770" y="212" width="170" height="56" rx="4"/>
+        <text class="t1" x="855" y="238" text-anchor="middle">Closed</text>
+        <text class="t2" x="855" y="258" text-anchor="middle">outcome recorded</text>
+
+        <rect class="box-s" x="200" y="212" width="230" height="56" rx="4"/>
+        <text class="t1" x="315" y="238" text-anchor="middle">Stays open</text>
+        <text class="t2" x="315" y="258" text-anchor="middle">keep watching</text>
+
+        <path class="e" d="M252 54 L286 54 L286 112 L314 112"/>
+        <path class="e" d="M252 112 L314 112"/>
+        <path class="e" d="M252 170 L286 170 L286 112"/>
+        <path class="e" d="M522 112 L574 112"/>
+        <path class="e" d="M782 112 L840 112 L840 176 L600 176 L600 200"/>
+        <path class="e" d="M722 240 L764 240"/>
+        <text class="tm" x="728" y="230">YES</text>
+        <path class="e" d="M478 240 L436 240"/>
+        <text class="tm" x="442" y="230">NO</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 10 ISP ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">10</p><h2>Monthly goal progress</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 320" role="img" aria-label="Monthly goal progress with a trend">
+        <rect class="box" x="20" y="40" width="200" height="60" rx="4" stroke-dasharray="5 4"/>
+        <text class="t1" x="120" y="66" text-anchor="middle">Maria's goal</text>
+        <text class="t2" x="120" y="86" text-anchor="middle">lives in the EMR</text>
+
+        <rect class="box-p" x="270" y="40" width="220" height="60" rx="4"/>
+        <text class="t1" x="380" y="66" text-anchor="middle">A reviewer types a %</text>
+        <text class="t2" x="380" y="86" text-anchor="middle">once a month</text>
+
+        <rect class="box-t" x="540" y="40" width="200" height="60" rx="4"/>
+        <text class="t1" x="640" y="66" text-anchor="middle">Every month kept</text>
+        <text class="t2" x="640" y="86" text-anchor="middle">none overwritten</text>
+
+        <rect class="box-s" x="790" y="40" width="150" height="60" rx="4"/>
+        <text class="t1" x="865" y="66" text-anchor="middle">Alert if it</text>
+        <text class="t1" x="865" y="86" text-anchor="middle">drops sharply</text>
+
+        <path class="ed" d="M222 70 L264 70"/>
+        <path class="e" d="M492 70 L534 70"/>
+        <path class="e" d="M742 70 L784 70"/>
+
+        <line class="en" x1="120" y1="280" x2="900" y2="280"/>
+        <rect x="180" y="248" width="70" height="32" fill="var(--plum-bright)"/>
+        <text class="t1" x="215" y="240" text-anchor="middle">20%</text>
+        <text class="tm" x="215" y="300" text-anchor="middle">JAN</text>
+        <rect x="330" y="224" width="70" height="56" fill="var(--plum-bright)"/>
+        <text class="t1" x="365" y="216" text-anchor="middle">35%</text>
+        <text class="tm" x="365" y="300" text-anchor="middle">FEB</text>
+        <rect x="480" y="200" width="70" height="80" fill="var(--plum-bright)"/>
+        <text class="t1" x="515" y="192" text-anchor="middle">50%</text>
+        <text class="tm" x="515" y="300" text-anchor="middle">MAR</text>
+        <rect x="630" y="176" width="70" height="104" fill="var(--plum-bright)"/>
+        <text class="t1" x="665" y="168" text-anchor="middle">65%</text>
+        <text class="tm" x="665" y="300" text-anchor="middle">APR</text>
+        <rect x="780" y="232" width="70" height="48" fill="var(--stop)"/>
+        <text class="tx" x="815" y="224" text-anchor="middle">30%</text>
+        <text class="tm" x="815" y="300" text-anchor="middle">MAY</text>
+        <path class="e" d="M865 102 L865 150 L880 150 L880 226"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 11 OVERSIGHT ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">11</p><h2>Scheduled reviews — all behave the same</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 330" role="img" aria-label="Scheduled review types sharing one flow">
+        <rect class="box" x="20" y="24" width="250" height="42" rx="4"/>
+        <text class="t1" x="36" y="44">Supervisor visit</text>
+        <text class="t2" x="36" y="60">every 30, 62, 90 or 122 days</text>
+        <rect class="box" x="20" y="76" width="250" height="42" rx="4"/>
+        <text class="t1" x="36" y="96">Nurse reassessment</text>
+        <text class="t2" x="36" y="112">on a set schedule</text>
+        <rect class="box" x="20" y="128" width="250" height="42" rx="4"/>
+        <text class="t1" x="36" y="148">HRST health screening</text>
+        <text class="t2" x="36" y="164">every year</text>
+        <rect class="box" x="20" y="180" width="250" height="42" rx="4"/>
+        <text class="t1" x="36" y="200">Risk Mitigation Plan</text>
+        <text class="t2" x="36" y="216">review date</text>
+        <rect class="box" x="20" y="232" width="250" height="42" rx="4"/>
+        <text class="t1" x="36" y="252">Healthcare Plan</text>
+        <text class="t2" x="36" y="268">review date</text>
+        <rect class="box" x="20" y="284" width="250" height="34" rx="4"/>
+        <text class="t1" x="36" y="306">DDP review — quarterly</text>
+
+        <rect class="box-t" x="380" y="106" width="220" height="106" rx="4"/>
+        <text class="tm" x="396" y="130">ALL OF THEM DO THIS</text>
+        <text class="t1" x="396" y="156">remind before it is due</text>
+        <text class="t1" x="396" y="180">go red once it is late</text>
+        <text class="t2" x="396" y="200">old reviews never deleted</text>
+
+        <rect class="box-p" x="700" y="80" width="240" height="52" rx="4"/>
+        <text class="t1" x="716" y="104">Someone does the review</text>
+        <text class="t2" x="716" y="122">findings written down</text>
+
+        <rect class="box-t" x="700" y="146" width="240" height="52" rx="4"/>
+        <text class="t1" x="716" y="170">Next date set by itself</text>
+        <text class="t2" x="716" y="188">the cycle repeats</text>
+
+        <rect class="box-p" x="700" y="212" width="240" height="52" rx="4"/>
+        <text class="t1" x="716" y="236">Anything found becomes</text>
+        <text class="t1" x="716" y="254">a task, with an owner</text>
+
+        <path class="e" d="M272 45 L330 45 L330 159 L374 159"/>
+        <path class="e" d="M272 97 L330 97"/>
+        <path class="e" d="M272 149 L330 149"/>
+        <path class="e" d="M272 201 L330 201"/>
+        <path class="e" d="M272 253 L330 253"/>
+        <path class="e" d="M272 301 L330 301"/>
+        <path class="en" d="M330 45 L330 301"/>
+        <path class="e" d="M602 140 L660 140 L660 106 L694 106"/>
+        <path class="e" d="M660 140 L660 172 L694 172"/>
+        <path class="e" d="M660 172 L660 238 L694 238"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 12 DASHBOARD ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">12</p><h2>The dashboard pulls from everywhere</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 470" role="img" aria-label="Dashboard alert sources">
+        <rect class="box" x="20" y="30" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="54">Tasks late</text>
+        <rect class="box" x="20" y="74" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="98">Agreements expiring</text>
+        <rect class="box" x="20" y="118" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="142">Authorisations expiring</text>
+        <rect class="box" x="20" y="162" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="186">Papers missing</text>
+        <rect class="box-g" x="20" y="206" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="230">Budget at 75 / 90 / 100%</text>
+        <rect class="box" x="20" y="250" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="274">Caregiver papers expiring</text>
+        <rect class="box" x="20" y="294" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="318">Incidents with no follow-up</text>
+        <rect class="box" x="20" y="338" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="362">Clients in hospital</text>
+        <rect class="box" x="20" y="382" width="250" height="36" rx="4"/>
+        <text class="t1" x="34" y="406">Nurse visits late</text>
+
+        <rect class="box" x="690" y="30" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="54">QI actions due</text>
+        <rect class="box" x="690" y="74" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="98">Monthly % not entered</text>
+        <rect class="box" x="690" y="118" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="142">DDP reviews due</text>
+        <rect class="box" x="690" y="162" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="186">Supervisor visits due</text>
+        <rect class="box" x="690" y="206" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="230">Reassessments due</text>
+        <rect class="box" x="690" y="250" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="274">HRST due</text>
+        <rect class="box" x="690" y="294" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="318">Risk plans due</text>
+        <rect class="box" x="690" y="338" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="362">Healthcare plans due</text>
+        <rect class="box" x="690" y="382" width="250" height="36" rx="4"/>
+        <text class="t1" x="704" y="406">Client files incomplete</text>
+
+        <rect class="box-t" x="352" y="164" width="256" height="120" rx="4"/>
+        <text class="t3" x="480" y="204" text-anchor="middle">THE DASHBOARD</text>
+        <text class="t2" x="480" y="232" text-anchor="middle">one screen, about 20 lists</text>
+        <text class="t2" x="480" y="254" text-anchor="middle">click a line, open the record</text>
+
+        <path class="etn" d="M270 48 L312 48"/>
+        <path class="etn" d="M270 92 L312 92"/>
+        <path class="etn" d="M270 136 L312 136"/>
+        <path class="etn" d="M270 180 L312 180"/>
+        <path class="etn" d="M270 224 L312 224"/>
+        <path class="etn" d="M270 268 L312 268"/>
+        <path class="etn" d="M270 312 L312 312"/>
+        <path class="etn" d="M270 356 L312 356"/>
+        <path class="etn" d="M270 400 L312 400"/>
+        <path class="etn" d="M312 48 L312 400"/>
+        <path class="et" d="M312 210 L346 210"/>
+
+        <path class="etn" d="M690 48 L648 48"/>
+        <path class="etn" d="M690 92 L648 92"/>
+        <path class="etn" d="M690 136 L648 136"/>
+        <path class="etn" d="M690 180 L648 180"/>
+        <path class="etn" d="M690 224 L648 224"/>
+        <path class="etn" d="M690 268 L648 268"/>
+        <path class="etn" d="M690 312 L648 312"/>
+        <path class="etn" d="M690 356 L648 356"/>
+        <path class="etn" d="M690 400 L648 400"/>
+        <path class="etn" d="M648 48 L648 400"/>
+        <path class="et" d="M648 240 L614 240"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 13 BUILD ORDER ============ -->
+  <section>
+    <div class="sec-head"><p class="eyebrow">13</p><h2>Build order</h2></div>
+    <div class="fig">
+      <svg class="dg wide" viewBox="0 0 960 250" role="img" aria-label="Seven milestones in order">
+        <text class="tm" x="14" y="40">28 WEEKS · EACH STEP APPROVED BEFORE THE NEXT ONE STARTS</text>
+
+        <rect class="box-p" x="14" y="72" width="118" height="80" rx="4"/>
+        <text class="tm" x="73" y="96" text-anchor="middle">WK 1–3</text>
+        <text class="t1" x="73" y="122" text-anchor="middle">Planning</text>
+
+        <rect class="box-p" x="150" y="72" width="118" height="80" rx="4"/>
+        <text class="tm" x="209" y="96" text-anchor="middle">WK 3–6</text>
+        <text class="t1" x="209" y="122" text-anchor="middle">Designs</text>
+        <text class="t2" x="209" y="140" text-anchor="middle">in Figma</text>
+
+        <rect class="box-p" x="286" y="72" width="118" height="80" rx="4"/>
+        <text class="tm" x="345" y="96" text-anchor="middle">WK 6–9</text>
+        <text class="t1" x="345" y="122" text-anchor="middle">Screens</text>
+        <text class="t2" x="345" y="140" text-anchor="middle">fake data</text>
+
+        <rect class="box-g" x="422" y="72" width="118" height="80" rx="4"/>
+        <text class="tm" x="481" y="96" text-anchor="middle">WK 9–11</text>
+        <text class="t1" x="481" y="122" text-anchor="middle">Database</text>
+
+        <rect class="box-t" x="558" y="72" width="152" height="80" rx="4"/>
+        <text class="tm" x="634" y="96" text-anchor="middle">WK 11–19</text>
+        <text class="t1" x="634" y="122" text-anchor="middle">Backend one</text>
+        <text class="t2" x="634" y="140" text-anchor="middle">clients · budget · tasks</text>
+
+        <rect class="box-t" x="728" y="72" width="130" height="80" rx="4"/>
+        <text class="tm" x="793" y="96" text-anchor="middle">WK 19–25</text>
+        <text class="t1" x="793" y="122" text-anchor="middle">Backend two</text>
+        <text class="t2" x="793" y="140" text-anchor="middle">the rest</text>
+
+        <rect class="box-p" x="876" y="72" width="70" height="80" rx="4"/>
+        <text class="tm" x="911" y="96" text-anchor="middle">26–28</text>
+        <text class="t1" x="911" y="122" text-anchor="middle">Test</text>
+        <text class="t1" x="911" y="140" text-anchor="middle">&amp; live</text>
+
+        <path class="e" d="M134 112 L146 112"/>
+        <path class="e" d="M270 112 L282 112"/>
+        <path class="e" d="M406 112 L418 112"/>
+        <path class="e" d="M542 112 L554 112"/>
+        <path class="e" d="M712 112 L724 112"/>
+        <path class="e" d="M860 112 L872 112"/>
+
+        <rect class="box-s" x="286" y="188" width="424" height="52" rx="4"/>
+        <text class="t1" x="302" y="214">Nothing actually works until week 19</text>
+        <text class="t2" x="302" y="232">screens exist from week 9, but they save nothing</text>
+        <path class="e" d="M345 154 L345 182"/>
+        <path class="e" d="M634 154 L634 182"/>
+      </svg>
+    </div>
+  </section>
+
+  <footer>
+    Internal document · no pricing anywhere by design<br>
+    Maria Lopez and her numbers are invented, to show how the calculations behave
+  </footer>
+
+</div>
+</body>
+</html>
