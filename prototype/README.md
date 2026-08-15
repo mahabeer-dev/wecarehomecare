@@ -53,8 +53,8 @@ stat tiles — click any of them and you go somewhere. Nothing validates and not
 ## Where to start
 
 **Show a client this first:** the flow called **★ Maria Lopez — one client, one year**.
-Twenty steps following a single client from her import in January through a fall, a hospital
-stay, an automatic quality item, a budget alert and finally an attempt to overspend her
+Twenty steps following a single client from their import in January through a fall, a hospital
+stay, an automatic quality item, a budget alert and finally an attempt to overspend their
 authorisation. It covers most of the system without explaining any of it.
 
 ## The flows

@@ -20,13 +20,13 @@ internet connection required.
 To serve it instead:
 
 ```bash
-python3 -m http.server 8902 --directory prototype
+python3 -m http.server 8899 --directory prototype
 ```
 
 See [`prototype/README.md`](prototype/README.md) for how to drive it and what each flow shows.
 
 **Start with the flow called “★ Maria Lopez — one client, one year”.** It follows a single
-client from her import in January through a fall, a hospital stay, an automatically raised
+client from their import in January through a fall, a hospital stay, an automatically raised
 quality item, a budget alert and an attempted over-spend. It demonstrates most of the system
 without explaining any of it.
 
