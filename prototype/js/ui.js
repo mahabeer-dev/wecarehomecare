@@ -39,7 +39,10 @@ var UI = (function () {
 
   function icon(name, cls) {
     var d = P[name] || P.list;
-    return '<svg class="' + (cls || 'ico') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    /* .ico is always present so an icon can never render unbounded, whatever
+       container it lands in. Variants like .ei only change the size. */
+    var klass = 'ico' + (cls && cls !== 'ico' ? ' ' + cls : '');
+    return '<svg class="' + klass + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
            'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
            '<path d="' + d + '"/></svg>';
   }

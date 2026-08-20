@@ -4,10 +4,12 @@
 
 /* ---------------- icons ---------------- */
 
+/* Every icon carries .ico, so nothing can render at its natural size.
+   Variants are modifiers on top and work in any container. */
 svg.ico { width: 16px; height: 16px; flex: none; }
+svg.ico.bi { width: 20px; height: 20px; }
+svg.ico.ei { width: 46px; height: 46px; opacity: .38; }
 .clist-row > svg.ico, .stat svg.ico { color: var(--n-400); }
-.banner svg.bi { width: 20px; height: 20px; flex: none; }
-.empty svg.ei { width: 46px; height: 46px; }
 
 /* ---------------- card ---------------- */
 
@@ -315,7 +317,7 @@ table.tbl .sub2 { font-size: 12px; color: var(--text-mute); }
   align-items: flex-start;
 }
 
-.banner .bi { width: 20px; height: 20px; flex: none; margin-top: 1px; }
+.banner .bi { margin-top: 1px; }
 .banner .bt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .banner b { font-size: 14px; font-weight: 650; }
 .banner span { font-size: 13px; }
@@ -466,7 +468,7 @@ table.tbl .sub2 { font-size: 12px; color: var(--text-mute); }
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: var(--s-12) var(--s-6); text-align: center; color: var(--text-mute);
 }
-.empty .ei { width: 46px; height: 46px; opacity: .38; }
+
 .empty b { color: var(--text); font-size: 15px; }
 
 .skel { background: linear-gradient(90deg, var(--n-100) 25%, var(--n-200) 37%, var(--n-100) 63%); background-size: 400% 100%; animation: sk 1.3s ease infinite; border-radius: var(--rad-sm); }
