@@ -26,43 +26,35 @@ var DEMO = (function () {
   var CLIENTS = [
     { id:'c1', agency:'ga', name:'Maria Lopez',      dob:'14 Mar 1968', mrn:'GA-10482', waiver:'NOW',
       program:'Community Living Support', status:'Active', since:'Jan 2026', coord:'Renee Alcott',
-      agreement:{ start:'01 Jan 2026', end:'31 Dec 2026', status:'Current' },
-      docsComplete:false, flags:['Budget 75%','3 incidents in April'] },
+      agreement:{ start:'01 Jan 2026', end:'31 Dec 2026', status:'Current' } },
 
     { id:'c2', agency:'ga', name:'Curtis Nabors',    dob:'02 Sep 1954', mrn:'GA-10233', waiver:'COMP',
       program:'Personal Support', status:'Active', since:'Aug 2024', coord:'Renee Alcott',
-      agreement:{ start:'15 Aug 2025', end:'14 Aug 2026', status:'Current' },
-      docsComplete:true, flags:[] },
+      agreement:{ start:'15 Aug 2025', end:'14 Aug 2026', status:'Current' } },
 
     { id:'c3', agency:'ga', name:'Adaeze Okafor',    dob:'23 Jun 1979', mrn:'GA-10871', waiver:'NOW',
       program:'Community Living Support', status:'Active', since:'Mar 2025', coord:'Renee Alcott',
-      agreement:{ start:'01 Mar 2025', end:'28 Feb 2026', status:'Due soon' },
-      docsComplete:false, flags:['Agreement expires in 12 days'] },
+      agreement:{ start:'01 Mar 2025', end:'28 Feb 2026', status:'Due soon' } },
 
     { id:'c4', agency:'ga', name:'Harold Bramlett',  dob:'11 Nov 1947', mrn:'GA-09920', waiver:'COMP',
       program:'Respite', status:'In hospital', since:'Feb 2023', coord:'Renee Alcott',
-      agreement:{ start:'01 Jul 2025', end:'30 Jun 2026', status:'Current' },
-      docsComplete:true, flags:['Admitted 09 Apr'] },
+      agreement:{ start:'01 Jul 2025', end:'30 Jun 2026', status:'Current' } },
 
     { id:'c5', agency:'ga', name:'Sylvia Trent',     dob:'30 Jan 1962', mrn:'GA-10555', waiver:'NOW',
       program:'Community Living Support', status:'Active', since:'Sep 2025', coord:'Renee Alcott',
-      agreement:{ start:'01 Sep 2025', end:'31 Aug 2026', status:'Current' },
-      docsComplete:false, flags:['HRST review overdue'] },
+      agreement:{ start:'01 Sep 2025', end:'31 Aug 2026', status:'Current' } },
 
     { id:'c6', agency:'ms', name:'Jerome Sandifer',  dob:'19 Apr 1959', mrn:'MS-20114', waiver:'IDD Community Supports',
       program:'Home & Community Supports', status:'Active', since:'Jun 2024', coord:'Patrice Hollins',
-      agreement:{ start:'01 Jun 2025', end:'31 May 2026', status:'Current' },
-      docsComplete:true, flags:[] },
+      agreement:{ start:'01 Jun 2025', end:'31 May 2026', status:'Current' } },
 
     { id:'c7', agency:'ms', name:'Loretta Bynum',    dob:'07 Dec 1951', mrn:'MS-20387', waiver:'IDD Community Supports',
       program:'Respite', status:'Active', since:'Feb 2026', coord:'Patrice Hollins',
-      agreement:{ start:'01 Feb 2026', end:'31 Jan 2027', status:'Current' },
-      docsComplete:false, flags:['Waiver documents missing'] },
+      agreement:{ start:'01 Feb 2026', end:'31 Jan 2027', status:'Current' } },
 
     { id:'c8', agency:'ms', name:'Vernon Ashby',     dob:'25 Aug 1966', mrn:'MS-20502', waiver:'IDD Community Supports',
       program:'Home & Community Supports', status:'Active', since:'Nov 2025', coord:'Patrice Hollins',
-      agreement:{ start:'01 Nov 2025', end:'31 Oct 2026', status:'Current' },
-      docsComplete:true, flags:[] }
+      agreement:{ start:'01 Nov 2025', end:'31 Oct 2026', status:'Current' } }
   ];
 
   /* ---------------- caregivers ---------------- */

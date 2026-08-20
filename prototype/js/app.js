@@ -801,6 +801,20 @@ var APP = (function () {
       }
 
       DB.addMany('clients', remapAgencies(toAdd));
+
+      /* Each new client starts with the required documents for their
+         programme, every one of them not yet on file. */
+      var rows = [];
+      toAdd.forEach(function (c) {
+        var prog = DB.all('programmes').filter(function (p) { return p.name === c.waiver; })[0]
+                || DB.all('programmes')[0];
+        (prog ? prog.docs || [] : []).forEach(function (d) {
+          rows.push({ client: c.id, name: d.name, required: d.required !== false,
+                      received: '—', expires: '—', status: 'Missing' });
+        });
+      });
+      if (rows.length) DB.addMany('clientDocs', rows);
+
       if (DB.setupStep() < 5) { DB.setupStep(5); S.vars.setupStep = 5; }
       DB.log(user().name, 'Imported ' + toAdd.length + ' clients from ' + DEMO.importFile.name,
         (DEMO.importFile.rows.length - good.length) + ' rows skipped');

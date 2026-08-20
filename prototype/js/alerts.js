@@ -56,16 +56,14 @@ var ALERTS = (function () {
 
     /* --- client paperwork --- */
     DATA.inAgency(DATA.CLIENTS, agency).forEach(function (c) {
-      if (c.docsComplete) return;
-      var docs = DATA.CHECKLIST || [];
-      var missing = docs.filter(function (d) { return d.status === 'Missing'; }).length;
-      var expired = docs.filter(function (d) { return d.status === 'Expired'; }).length;
-      if (expired) out.push({ kind:'Expired', what:'A required document has expired',
-                              who:c.name + ' · waiver paperwork', when:'renew it', goto:'clients.checklist' });
-      if (missing) out.push({ kind:'Missing', what:'A required document is not on file',
-                              who:c.name + ' · waiver paperwork', when:'not on file', goto:'clients.checklist' });
-      if (!expired && !missing) out.push({ kind:'Missing', what:'Client file incomplete',
-                              who:c.name, when:'check the checklist', goto:'clients.checklist' });
+      var pw = DATA.paperwork(c.id);
+      if (!pw.started || pw.complete) return;
+      if (pw.expired) out.push({ kind:'Expired', what:'A required document has expired',
+                                 who:c.name + ' · waiver paperwork', when:'renew it', goto:'clients.checklist' });
+      if (pw.missing) out.push({ kind:'Missing',
+                                 what: pw.missing + ' required document' + (pw.missing === 1 ? '' : 's') + ' not on file',
+                                 who:c.name + ' · waiver paperwork',
+                                 when: pw.onFile + ' of ' + pw.total + ' filed', goto:'clients.checklist' });
     });
 
     /* --- agreements running out --- */

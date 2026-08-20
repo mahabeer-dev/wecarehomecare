@@ -57,6 +57,7 @@ var SEED = {
     }
   ],
   clients:     [],
+  clientDocs:  [],   /* one row per client per required document */
   caregivers:  [],
   credentials: {},
   auths:       [],

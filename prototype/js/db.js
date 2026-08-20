@@ -80,6 +80,23 @@ var DB = (function () {
       state.users.push(clone(DEMO.users.nurse));
     }
     state.clients     = clone(DEMO.clients);
+    state.clientDocs  = [];
+    var template = clone(fresh().programmes[0].docs);
+    state.clients.forEach(function (c, ci) {
+      template.forEach(function (d, di) {
+        /* the first client has a gap and an expiry, everyone else is in order */
+        var st = 'On file';
+        if (ci === 0 && d.name === 'Physician order for services') st = 'Missing';
+        else if (ci === 0 && d.name === 'Annual health assessment') st = 'Expired';
+        else if (ci === 2 && di > 6) st = 'Missing';
+        state.clientDocs.push({
+          client: c.id, name: d.name, required: d.required !== false,
+          received: st === 'Missing' ? '—' : '01 Jan 2026',
+          expires: d.expires ? (st === 'Expired' ? '11 Feb 2026' : '31 Dec 2026') : '—',
+          status: st
+        });
+      });
+    });
     state.caregivers  = clone(DEMO.caregivers);
     state.credentials = clone(DEMO.credentials);
     state.auths       = clone(DEMO.auths);

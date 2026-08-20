@@ -22,15 +22,26 @@
       UI.btn('Add client', { cls: 'btn--primary', icon: 'plus', goto: 'clients.import' }) +
       '</span></div>';
 
+    var incomplete = rows.filter(function (r) {
+      var pw = DATA.paperwork(r.id);
+      return pw.started && !pw.complete;
+    }).length;
+    var expiring = rows.filter(function (r) {
+      return r.agreement && r.agreement.status === 'Due soon';
+    }).length;
+    var inHospital = rows.filter(function (r) {
+      return DATA.HOSPS.some(function (h) { return h.client === r.id && /^Open/.test(h.status || ''); });
+    }).length;
+
     h += '<div class="card"><div class="filters">' +
       '<span class="fchip on">All <span class="ct">' + rows.length + '</span></span>' +
-      '<span class="fchip">Documents incomplete <span class="ct">' + rows.filter(function (r) { return !r.docsComplete; }).length + '</span></span>' +
-      '<span class="fchip">Agreement expiring <span class="ct">1</span></span>' +
-      '<span class="fchip">In hospital <span class="ct">' + rows.filter(function (r) { return r.status === 'In hospital'; }).length + '</span></span>' +
+      '<span class="fchip">Paperwork outstanding <span class="ct">' + incomplete + '</span></span>' +
+      '<span class="fchip">Agreement expiring <span class="ct">' + expiring + '</span></span>' +
+      '<span class="fchip">In hospital <span class="ct">' + inHospital + '</span></span>' +
       '<span class="spacer"></span>' +
       '<span class="fchip">' + UI.icon('search') + 'Search</span>' +
       '</div><div class="tbl-wrap"><table class="tbl"><thead><tr>' +
-      '<th>Client</th><th>Waiver</th><th>Programme</th><th>Agreement</th><th>File</th><th>Flags</th>' +
+      '<th>Client</th><th>Waiver</th><th>Programme</th><th>Agreement</th><th>Paperwork</th><th>Needs attention</th>' +
       '</tr></thead><tbody>';
 
     rows.forEach(function (c, i) {
@@ -41,12 +52,27 @@
         '<td>' + UI.badge(c.waiver, 'plum') + '</td>' +
         '<td class="small">' + UI.esc(c.program) + '</td>' +
         '<td class="small">' + UI.badge(c.agreement.status) + '<br><span class="sub2">to ' + UI.esc(c.agreement.end) + '</span></td>' +
-        '<td>' + (c.docsComplete ? UI.badge('Complete', 'ok') : UI.badge('Incomplete', 'bad')) + '</td>' +
-        '<td class="small">' + (c.flags.length ? c.flags.map(function (f) { return UI.badge(f, 'warn'); }).join(' ') : '<span class="muted">—</span>') + '</td>' +
+        '<td>' + paperworkCell(c) + '</td>' +
+        '<td class="small">' + signalCells(c) + '</td>' +
       '</tr>';
     });
 
     return h + '</tbody></table></div></div></div>';
+  }
+
+  /* Paperwork state, worked out from the client's own document rows. */
+  function paperworkCell(c) {
+    var pw = DATA.paperwork(c.id);
+    if (!pw.started) return '<span class="small muted">not started</span>';
+    if (pw.complete) return UI.badge('Complete', 'ok');
+    if (pw.expired)  return UI.badge(pw.onFile + ' of ' + pw.total + ' · expired', 'bad');
+    return UI.badge(pw.onFile + ' of ' + pw.total + ' on file', pw.onFile ? 'warn' : 'neutral');
+  }
+
+  function signalCells(c) {
+    var sig = DATA.signals(c);
+    if (!sig.length) return '<span class="muted">—</span>';
+    return sig.map(function (x) { return UI.badge(x.label, x.kind); }).join(' ');
   }
 
   screen('clients.list', {
@@ -354,18 +380,26 @@
     render: function () {
       var c = DATA.byId(DATA.CLIENTS, 'c1') || DATA.CLIENTS[0];
       if (!c) return UI.noRecord('clients yet', 'Back to clients', 'clients.list');
+      var docs = DATA.docsFor(c.id);
+      var pw = DATA.paperwork(c.id);
       var h = '<div class="page">' + profileHead(c) + tabs('Waiver documents');
 
-      h += UI.banner('bad', 'File incomplete — 1 missing, 1 expired',
-        'This client will keep appearing on the dashboard until both are resolved.');
+      h += pw.complete
+        ? UI.banner('ok', 'Everything required is on file',
+            'Nothing about this paperwork is showing on the dashboard.')
+        : UI.banner(pw.expired ? 'bad' : 'warn',
+            pw.onFile + ' of ' + pw.total + ' required documents on file',
+            (pw.missing ? pw.missing + ' still to collect. ' : '') +
+            (pw.expired ? pw.expired + ' has expired and needs renewing. ' : '') +
+            'This client keeps appearing on the dashboard until that is resolved.');
 
-      h += '<div class="card"><div class="card-head"><h3>NOW waiver — required documents</h3>' +
+      h += '<div class="card"><div class="card-head"><h3>' + UI.esc(c.waiver) + ' — required documents</h3>' +
         '<span class="spacer"></span>' + UI.btn('Edit this checklist', { cls: 'btn--sm', goto: 'set.checklist' }) + '</div>' +
         '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
         '<th>Document</th><th>Received</th><th>Expires</th><th>Status</th><th></th>' +
         '</tr></thead><tbody>';
 
-      DATA.CHECKLIST.forEach(function (d) {
+      docs.forEach(function (d) {
         h += '<tr data-row><td class="nm">' + UI.esc(d.name) + '</td>' +
           '<td class="num small">' + UI.esc(d.received) + '</td>' +
           '<td class="num small">' + UI.esc(d.expires) + '</td>' +
