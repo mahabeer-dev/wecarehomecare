@@ -21,7 +21,7 @@ var DB = (function () {
   /* Bump this whenever the shape of the data changes. A stored copy from an
      older build is discarded rather than merged, because a half-old, half-new
      store looks like working data and is not. */
-  var SCHEMA = 4;
+  var SCHEMA = 5;
 
   var state = null;
   var storageWorks = true;
@@ -142,6 +142,9 @@ var DB = (function () {
     state.tasks       = clone(DEMO.tasks);
     state.audit       = clone(DEMO.audit);
     state.settings.setupStep = 6;
+    /* The demo is a system frozen on one day. Dates are read against this
+       rather than the real clock, so the story reads the same in any year. */
+    state.settings.today = '2026-05-05';
     writeStore();
   }
 

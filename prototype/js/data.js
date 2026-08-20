@@ -142,8 +142,8 @@ var DATA = (function () {
       if (pc >= 75) out.push({ label: 'Budget ' + pc + '%', kind: pc >= 100 ? 'bad' : 'warn' });
     });
 
-    var open = DB.all('incidents').filter(function (i) {
-      return i.client === c.id && i.status !== 'Closed';
+    var open = incidentsFor(c.id).filter(function (i) {
+      return incidentState(i).key !== 'closed';
     }).length;
     if (open) out.push({ label: open + (open === 1 ? ' open incident' : ' open incidents'), kind: 'warn' });
 
@@ -161,6 +161,71 @@ var DATA = (function () {
 
     return out;
   }
+
+  /* ---------------- incidents ----------------
+     Where an incident stands is never stored on it. It follows from
+     whether a follow-up was recorded, whether it was closed, and
+     whether its due date has passed. */
+
+  function daysBetween(fromISO, toISO) {
+    if (!fromISO || !toISO) return 0;
+    return Math.round((Date.parse(toISO) - Date.parse(fromISO)) / 86400000);
+  }
+
+  /* The real clock, unless the demo dataset is loaded — that is a snapshot
+     of a system on one particular day, and its dates only make sense read
+     against that day. A real install has no such setting. */
+  function todayISO() {
+    var frozen = DB.settings().today;
+    if (frozen) return frozen;
+    var d = new Date();
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  function incidentState(i) {
+    if (!i) return { key: 'open', label: 'Open', tone: 'warn', days: 0 };
+    if (i.closed)   return { key: 'closed', label: 'Closed', tone: 'ok', days: 0 };
+    if (i.followUp) return { key: 'done', label: 'Follow-up complete', tone: 'ok', days: 0 };
+    var late = daysBetween(UI.toISO(i.due), todayISO());
+    if (i.due && late > 0) return { key: 'overdue', label: 'Follow-up overdue', tone: 'bad', days: late };
+    return { key: 'open', label: 'Awaiting follow-up', tone: 'warn', days: 0 };
+  }
+
+  function incidentsFor(clientId) {
+    return DB.all('incidents').filter(function (i) { return i.client === clientId; });
+  }
+
+  /* "03 Apr 2026, 14:20" -> "2026-04" — the month a threshold counts within. */
+  function monthOf(when) {
+    var iso = UI.toISO(when);
+    return iso ? iso.slice(0, 7) : '';
+  }
+
+  function monthName(key) {
+    var M = ['January','February','March','April','May','June',
+             'July','August','September','October','November','December'];
+    var p = String(key || '').split('-');
+    return p.length === 2 ? M[+p[1] - 1] + ' ' + p[0] : '';
+  }
+
+  /* How many incidents this client has had in the same month, and whether
+     that is over the threshold the Super Admin set. */
+  function incidentTally(clientId, when) {
+    var key = monthOf(when);
+    var n = incidentsFor(clientId).filter(function (i) { return monthOf(i.when) === key; }).length;
+    var limit = (DB.settings().thresholds || {}).qiFromIncidents;
+    if (limit === undefined) limit = 2;
+    return { month: key, monthLabel: monthName(key), count: n, limit: limit, over: n > limit };
+  }
+
+  API.incidentState = incidentState;
+  API.incidentsFor = incidentsFor;
+  API.incidentTally = incidentTally;
+  API.monthOf = monthOf;
+  API.monthName = monthName;
+  API.daysBetween = daysBetween;
+  API.todayISO = todayISO;
 
   API.docsFor = docsFor;
   API.paperwork = paperwork;

@@ -511,6 +511,34 @@ var APP = (function () {
      Buttons carrying data-do="name" run one of these before
      navigating. This is where the prototype actually saves.  */
 
+  /* A quality item opens itself once a client passes the monthly threshold.
+     One per client per month — recording a fourth incident does not open a fourth item. */
+  function openQIifOver(rec) {
+    var tally = DATA.incidentTally(rec.client, rec.when);
+    if (!tally.over) return;
+
+    var exists = DB.all('qi').some(function (q) {
+      return q.client === rec.client && q.month === tally.month;
+    });
+    if (exists) return;
+
+    var owner = (DB.all('users').filter(function (u) { return u.role === 'admin'; })[0] ||
+                 DB.all('users')[0] || {}).name || '';
+
+    DB.add('qi', {
+      agency: rec.agency, client: rec.client, clientName: rec.clientName, month: tally.month,
+      title: 'Repeat incidents — ' + rec.clientName,
+      opened: DB.stamp().slice(0, 11),
+      source: 'Auto — ' + tally.count + ' incidents in ' + tally.monthLabel,
+      owner: owner, due: '', status: 'Open', auto: true, plan: ''
+    });
+    DB.log('System', 'Opened a quality item for ' + rec.clientName,
+      tally.count + ' incidents in ' + tally.monthLabel + ', threshold is ' + tally.limit);
+    toast('warn', 'A quality item opened by itself',
+      rec.clientName + ' has had ' + tally.count + ' incidents in ' + tally.monthLabel +
+      '. The threshold is ' + tally.limit + '.');
+  }
+
   /* Reads the reminder form, or returns null and complains. */
   function readRule() {
     function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
@@ -978,6 +1006,172 @@ var APP = (function () {
                         done: DB.stamp().slice(0, 11), due: '—', status: 'ok' });
       DB.log(user().name, 'Renewed "' + c.name + '"', 'The previous record was kept');
       toast('ok', c.name + ' renewed', 'The expired record is kept on file, not overwritten.');
+      return 'stay';
+    },
+
+    /* ---------------- the automatic rules ---------------- */
+
+    'th.toggle': function (S) {
+      var t = DB.settings().thresholds || {};
+      t.nurseVisitAfterDischarge = !t.nurseVisitAfterDischarge;
+      DB.setSetting('thresholds', t);
+      return 'stay';
+    },
+
+    'th.save': function (S) {
+      function num(id, min, max) {
+        var e = document.getElementById(id);
+        var n = e ? parseFloat(String(e.value).replace(/[^0-9.]/g, '')) : NaN;
+        if (isNaN(n) || n < min || n > max) return null;
+        return n;
+      }
+      var t = DB.settings().thresholds || {};
+
+      var inc   = num('th-inc', 1, 99),
+          hosp  = num('th-hosp', 1, 99),
+          b1    = num('th-b1', 1, 100),
+          b2    = num('th-b2', 1, 100),
+          b3    = num('th-b3', 1, 200),
+          isp   = num('th-isp', 1, 100),
+          chase = num('th-chase', 1, 365),
+          esc   = num('th-esc', 1, 365);
+
+      if ([inc, hosp, b1, b2, b3, isp, chase, esc].some(function (v) { return v === null; })) {
+        toast('bad', 'One of these is not a number', 'Every rule needs a figure the system can count to.');
+        return 'stay';
+      }
+      if (!(b1 < b2 && b2 < b3)) {
+        toast('bad', 'The budget alerts overlap', 'They have to rise: first, then second, then exhausted.');
+        return 'stay';
+      }
+
+      t.qiFromIncidents = inc; t.qiFromHospitalStays = hosp;
+      t.budgetAlerts = [b1, b2, b3];
+      t.ispDropPoints = isp; t.incidentChaseDays = chase; t.escalateAfterDays = esc;
+      DB.setSetting('thresholds', t);
+
+      DB.log(user().name, 'Changed the automatic rules',
+        inc + ' incidents · ' + b1 + '/' + b2 + '/' + b3 + '% budget · chase after ' + chase + ' days');
+      toast('ok', 'Rules saved', 'They apply from now on, to records already in the system as well.');
+      return 'stay';
+    },
+
+    /* ---------------- incidents ---------------- */
+
+    'inc.open': function (S, el) { S.vars.incId = el.getAttribute('data-id'); return null; },
+
+    'inc.filter': function (S, el) { S.vars.incFilter = el.getAttribute('data-filter'); return 'stay'; },
+
+    /* The notify list is part of the form, so it lives in vars until saving. */
+    'inc.notify': function (S, el) {
+      var who = el.getAttribute('data-who');
+      var list = (S.vars.incNotify || ['Support coordinator', 'Family']).slice();
+      var at = list.indexOf(who);
+      if (at >= 0) list.splice(at, 1); else list.push(who);
+      S.vars.incNotify = list;
+      return 'stay';
+    },
+
+    'inc.add': function (S) {
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var c = DB.get('clients', val('in-client'));
+      if (!c) { toast('bad', 'Pick a client', 'An incident happens to somebody.'); return 'stay'; }
+
+      var when = UI.readDate('in-when');
+      if (!when) { toast('bad', 'When did it happen?', 'The date decides what gets chased and by when.'); return 'stay'; }
+
+      var desc = val('in-desc');
+      if (!desc) { toast('bad', 'Say what happened', 'This is the account somebody will read months from now.'); return 'stay'; }
+
+      /* No due date given? Use the chase interval the Super Admin set. */
+      var due = UI.readDate('in-due');
+      if (!due) {
+        var days = (DB.settings().thresholds || {}).incidentChaseDays || 7;
+        var d = new Date(Date.parse(UI.toISO(when)) + days * 86400000);
+        due = UI.fromISO(d.toISOString().slice(0, 10));
+      }
+      if (UI.toISO(due) < UI.toISO(when)) {
+        toast('bad', 'The follow-up is due before it happened', 'Check the two dates.'); return 'stay';
+      }
+
+      var rec = DB.add('incidents', {
+        agency: c.agency, client: c.id, clientName: c.name,
+        type: val('in-type') || 'Other',
+        when: when,
+        place: val('in-place'),
+        desc: desc,
+        immediate: val('in-action'),
+        notified: (S.vars.incNotify || ['Support coordinator', 'Family']).slice(),
+        assigned: val('in-who') || (DB.all('users')[0] || {}).name || '',
+        due: due
+      });
+
+      S.vars.incId = rec.id;
+      S.vars.incNotify = null;
+      S.vars.incFilter = 'all';
+      DB.log(user().name, 'Recorded a ' + (val('in-type') || 'incident').toLowerCase() + ' for ' + c.name,
+        'Follow-up due ' + due);
+      toast('ok', 'Incident recorded',
+        'The follow-up is due ' + due + '. It will be chased from the dashboard until it is done.');
+
+      openQIifOver(rec);
+    },
+
+    /* Change who owns the follow-up, or when it is due, without completing it. */
+    'inc.reassign': function (S) {
+      var i = DB.get('incidents', S.vars.incId);
+      if (!i) return 'stay';
+      var who = (document.getElementById('fu-who') || {}).value || i.assigned;
+      var due = UI.readDate('fu-due') || i.due;
+      DB.update('incidents', i.id, { assigned: who, due: due });
+      DB.log(user().name, 'Reassigned the follow-up for ' + i.clientName, who + ' · due ' + due);
+      toast('ok', 'Follow-up reassigned', who + ' owns it now, due ' + due + '.');
+      return 'stay';
+    },
+
+    /* Recording the visit is what makes it stop chasing. */
+    'inc.followup': function (S) {
+      var i = DB.get('incidents', S.vars.incId);
+      if (!i) return 'stay';
+
+      var on = UI.readDate('fu-on');
+      if (!on) { toast('bad', 'When was the visit done?', 'That date is what stops the chase.'); return 'stay'; }
+      if (UI.toISO(on) < UI.toISO(i.when)) {
+        toast('bad', 'That is before the incident', 'A follow-up cannot happen first.'); return 'stay';
+      }
+
+      var note = (document.getElementById('fu-note') || {}).value || '';
+      var who = (document.getElementById('fu-who') || {}).value || i.assigned;
+
+      DB.update('incidents', i.id, {
+        assigned: who,
+        due: UI.readDate('fu-due') || i.due,
+        followUp: { on: on, by: who, note: String(note).trim() }
+      });
+      DB.log(user().name, 'Recorded the follow-up visit for ' + i.clientName, on + ' · ' + who);
+      toast('ok', 'Follow-up recorded', 'It has stopped chasing. You can close the incident when you are ready.');
+      return 'stay';
+    },
+
+    'inc.close': function (S) {
+      var i = DB.get('incidents', S.vars.incId);
+      if (!i) return 'stay';
+      if (!i.followUp) {
+        toast('bad', 'The follow-up is not done', 'Record the visit first — that is the point of the chase.');
+        return 'stay';
+      }
+      DB.update('incidents', i.id, { closed: { on: DB.stamp().slice(0, 11), by: user().name } });
+      DB.log(user().name, 'Closed the ' + i.type.toLowerCase() + ' for ' + i.clientName, 'Incident closed');
+      toast('ok', 'Incident closed', 'It stays on the record and still counts toward the monthly threshold.');
+    },
+
+    'inc.reopen': function (S) {
+      var i = DB.get('incidents', S.vars.incId);
+      if (!i) return 'stay';
+      DB.update('incidents', i.id, { closed: null });
+      DB.log(user().name, 'Reopened the ' + i.type.toLowerCase() + ' for ' + i.clientName, 'Incident reopened');
+      toast('info', 'Reopened', 'Closing it again needs nothing re-typed.');
       return 'stay';
     },
 

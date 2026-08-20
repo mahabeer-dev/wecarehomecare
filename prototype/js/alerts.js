@@ -26,13 +26,15 @@ var ALERTS = (function () {
 
     /* --- incidents without a completed follow-up --- */
     DATA.inAgency(DATA.INCIDENTS, agency).forEach(function (i) {
-      if (i.status === 'Closed') return;
-      var late = i.status === 'Follow-up overdue';
-      out.push({ kind: late ? 'Overdue' : 'Open',
-                 what: late ? 'Follow-up visit not completed' : i.type + ' under investigation',
+      var st = DATA.incidentState(i);
+      if (st.key === 'closed') return;
+      if (st.key === 'done') return;          /* done, just not signed off yet */
+      out.push({ kind: st.key === 'overdue' ? 'Overdue' : 'Open',
+                 what: st.key === 'overdue' ? 'Follow-up visit not completed'
+                                            : i.type + ' awaiting follow-up',
                  who: i.clientName + ' · ' + i.when.split(',')[0] + ' · ' + i.assigned,
-                 when: late ? i.ageDays + ' days late' : 'due ' + i.due,
-                 goto:'inc.detail' });
+                 when: st.key === 'overdue' ? st.days + ' days late' : 'due ' + i.due,
+                 id: i.id, goto:'inc.detail' });
     });
 
     /* --- scheduled reviews --- */

@@ -20,10 +20,17 @@
         '<span class="sub">Patterns across many events — not single incidents</span></span>' +
         '<span class="ph-actions">' + UI.btn('Open a quality item', { cls: 'btn--primary', icon: 'plus', goto: 'qi.detail' }) + '</span></div>';
 
+      var openItems = rows.filter(function (q) { return q.status !== 'Closed'; }).length;
+      var autoItems = rows.filter(function (q) { return q.auto; }).length;
+      var closedItems = rows.length - openItems;
+
       h += '<div class="grid grid-3">' +
-        UI.stat({ k: 'Open items', v: '2', n: 'one raised automatically', kind: 'warn' }) +
-        UI.stat({ k: 'Actions overdue', v: '0', n: 'all on schedule', kind: 'ok' }) +
-        UI.stat({ k: 'Closed this year', v: '5', n: '3 confirmed effective', kind: 'info' }) +
+        UI.stat({ k: 'Open items', v: String(openItems),
+          n: autoItems ? autoItems + ' raised automatically' : 'none raised automatically',
+          kind: openItems ? 'warn' : 'ok' }) +
+        UI.stat({ k: 'Raised by the system', v: String(autoItems),
+          n: 'from a threshold being passed', kind: 'info' }) +
+        UI.stat({ k: 'Closed', v: String(closedItems), n: 'kept on the record', kind: 'info' }) +
       '</div>';
 
       h += '<div class="card"><div class="card-head"><h3>Items</h3></div>' +
@@ -48,8 +55,10 @@
       h += '<div class="card"><div class="card-head"><h3>What opens an item automatically</h3>' +
         '<span class="spacer"></span>' + UI.btn('Change', { cls: 'btn--sm', goto: 'set.thresholds' }) + '</div>' +
         '<div class="card-body"><div class="row" style="gap:10px">' +
-        '<span class="badge badge--warn">More than 2 incidents for one client in a month</span>' +
-        '<span class="badge badge--warn">More than 2 hospital stays for one client in a month</span>' +
+        '<span class="badge badge--warn">More than ' + ((DB.settings().thresholds || {}).qiFromIncidents || 2) +
+          ' incidents for one client in a month</span>' +
+        '<span class="badge badge--warn">More than ' + ((DB.settings().thresholds || {}).qiFromHospitalStays || 2) +
+          ' hospital stays for one client in a month</span>' +
         '</div><span class="small muted">Both thresholds are set by the Super Admin and can be changed at any time.</span>' +
         '</div></div>';
 

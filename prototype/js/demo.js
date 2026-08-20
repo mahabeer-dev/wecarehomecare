@@ -134,36 +134,47 @@ var DEMO = (function () {
 
   /* ---------------- incidents ---------------- */
 
+  /* Facts only. Where each one stands is worked out from whether a
+     follow-up was recorded and whether it was closed — never stored here. */
   var INCIDENTS = [
     { id:'i1', agency:'ga', client:'c1', clientName:'Maria Lopez', type:'Fall',
       when:'03 Apr 2026, 14:20', place:'Client home — kitchen',
       desc:'Client lost balance while reaching for a cupboard. No visible injury. Vitals normal.',
       immediate:'Assisted to a chair, vitals taken, family contacted.',
-      status:'Follow-up overdue', assigned:'Yvonne Pryce', due:'10 Apr 2026', ageDays:7 },
+      notified:['Support coordinator','Family'],
+      assigned:'Yvonne Pryce', due:'10 Apr 2026' },
 
     { id:'i2', agency:'ga', client:'c1', clientName:'Maria Lopez', type:'Medication error',
       when:'19 Apr 2026, 08:05', place:'Client home',
       desc:'Morning dose administered 90 minutes late.',
       immediate:'Prescriber notified. No adverse effect observed.',
-      status:'Under investigation', assigned:'Yvonne Pryce', due:'26 Apr 2026', ageDays:2 },
+      notified:['Support coordinator'],
+      assigned:'Yvonne Pryce', due:'26 Apr 2026' },
 
     { id:'i3', agency:'ga', client:'c1', clientName:'Maria Lopez', type:'Fall',
       when:'30 Apr 2026, 19:40', place:'Client home — hallway',
       desc:'Second fall this month. Client reported dizziness beforehand.',
       immediate:'Nurse called, GP appointment arranged.',
-      status:'Open', assigned:'Yvonne Pryce', due:'07 May 2026', ageDays:0, triggeredQI:true },
+      notified:['Support coordinator','Family','DDP'],
+      assigned:'Yvonne Pryce', due:'07 May 2026' },
 
     { id:'i4', agency:'ga', client:'c4', clientName:'Harold Bramlett', type:'Behavioural',
       when:'28 Mar 2026, 11:15', place:'Day programme',
       desc:'Verbal altercation with another participant.',
       immediate:'Separated, de-escalated, both parties calm within 10 minutes.',
-      status:'Closed', assigned:'Renee Alcott', due:'04 Apr 2026', ageDays:0 },
+      notified:['Support coordinator'],
+      assigned:'Renee Alcott', due:'04 Apr 2026',
+      followUp:{ on:'02 Apr 2026', by:'Renee Alcott', note:'Both participants seen. No repeat behaviour since.' },
+      closed:{ on:'04 Apr 2026', by:'Renee Alcott' } },
 
     { id:'i5', agency:'ms', client:'c7', clientName:'Loretta Bynum', type:'Property damage',
       when:'12 Apr 2026, 16:00', place:'Client home',
       desc:'Kitchen window cracked during transfer.',
       immediate:'Area made safe, repair booked.',
-      status:'Closed', assigned:'Patrice Hollins', due:'19 Apr 2026', ageDays:0 }
+      notified:['Family'],
+      assigned:'Patrice Hollins', due:'19 Apr 2026',
+      followUp:{ on:'17 Apr 2026', by:'Patrice Hollins', note:'Window replaced. Transfer route reviewed with staff.' },
+      closed:{ on:'19 Apr 2026', by:'Patrice Hollins' } }
   ];
 
   /* ---------------- hospitalisations ---------------- */

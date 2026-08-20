@@ -203,34 +203,57 @@
 
   screen('set.thresholds', {
     title: 'Automatic rules', nav: 'settings',
-    crumb: '<b>Settings</b> <span>›</span> Thresholds',
+    crumb: '<b>Settings</b> <span>&rsaquo;</span> Thresholds',
     render: function () {
+      var t = DB.settings().thresholds || {};
+      var b = t.budgetAlerts || [75, 90, 100];
+
       var h = '<div class="page">' + head('Automatic rules', 'When the system acts without being asked') + tabs('Thresholds');
 
       h += '<div class="grid grid-2">' +
-        rule('Quality item from incidents', 'More than', '2', 'incidents for one client in a calendar month', true) +
-        rule('Quality item from hospital stays', 'More than', '2', 'hospital stays for one client in a calendar month', true) +
-        rule('Budget alert — first', 'At', '75%', 'of the authorisation used', true) +
-        rule('Budget alert — second', 'At', '90%', 'of the authorisation used', true) +
-        rule('Budget alert — exhausted', 'At', '100%', 'of the authorisation used', true) +
-        rule('ISP progress drop', 'A fall of', '20', 'points or more from last month', true) +
-        rule('Incident follow-up chase', 'After', '7', 'days with no completed visit', true) +
-        rule('Nurse visit after discharge', 'Required for', 'every', 'client returning home from hospital', true) +
+        rule('th-inc', 'Quality item from incidents', 'More than', t.qiFromIncidents,
+             'incidents for one client in a calendar month') +
+        rule('th-hosp', 'Quality item from hospital stays', 'More than', t.qiFromHospitalStays,
+             'hospital stays for one client in a calendar month') +
+        rule('th-b1', 'Budget alert — first', 'At', b[0], 'per cent of the authorisation used') +
+        rule('th-b2', 'Budget alert — second', 'At', b[1], 'per cent of the authorisation used') +
+        rule('th-b3', 'Budget alert — exhausted', 'At', b[2], 'per cent of the authorisation used') +
+        rule('th-isp', 'ISP progress drop', 'A fall of', t.ispDropPoints, 'points or more from last month') +
+        rule('th-chase', 'Incident follow-up chase', 'After', t.incidentChaseDays,
+             'days is when a new follow-up falls due') +
+        rule('th-esc', 'Escalate to a manager', 'After', t.escalateAfterDays,
+             'days with nobody acting on it') +
       '</div>';
 
+      h += '<div class="card"><div class="card-head"><h3>Nurse visit after a hospital stay</h3>' +
+        '<span class="spacer"></span>' +
+        '<span class="check' + (t.nurseVisitAfterDischarge ? ' on' : '') + '" data-do="th.toggle">' +
+        '<span class="bx">' + (t.nurseVisitAfterDischarge
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round"><path d="M5 12.5 10 17.5 19 7"/></svg>'
+          : '') + '</span>Required</span></div>' +
+        '<div class="card-body"><span class="small muted">' +
+        (t.nurseVisitAfterDischarge
+          ? 'A hospital stay cannot be closed until a nurse visit is recorded.'
+          : 'A hospital stay can be closed without a nurse visit being recorded.') +
+        '</span></div>' +
+        '<div class="card-foot">' + UI.btn('Cancel', { goto: 'set.reminders' }) + '<span class="spacer"></span>' +
+        '<button class="btn btn--primary" data-do="th.save">' + UI.icon('check') + 'Save these rules</button>' +
+        '</div></div>';
+
       h += UI.banner('info', 'These are the rules that make the system feel alive',
-        'Every one of them is a number the office can change. None of them needs code.');
+        'Every one of them is a number the office can change. None of them needs code, and they take effect immediately.');
 
       return h + '</div>';
     }
   });
 
-  function rule(name, pre, val, post, on) {
-    return '<div class="card card--click"><div class="card-head"><h3 style="font-size:14px">' + name + '</h3>' +
-      '<span class="spacer"></span>' + UI.badge(on ? 'On' : 'Off', on ? 'ok' : 'neutral') + '</div>' +
+  function rule(id, name, pre, val, post) {
+    return '<div class="card"><div class="card-head"><h3 style="font-size:14px">' + name + '</h3>' +
+      '<span class="spacer"></span>' + UI.badge('On', 'ok') + '</div>' +
       '<div class="card-body" style="gap:10px">' +
       '<div class="row" style="gap:8px"><span class="small muted">' + pre + '</span>' +
-      '<span class="input" data-inert style="width:78px;text-align:center;font-weight:700;font-family:var(--mono)">' + val + '</span>' +
+      '<input class="input" data-inert id="' + id + '" value="' + UI.esc(String(val == null ? '' : val)) + '" ' +
+      'style="width:78px;text-align:center;font-weight:700;font-family:var(--mono)">' +
       '<span class="small muted" style="flex:1">' + post + '</span></div></div></div>';
   }
 
