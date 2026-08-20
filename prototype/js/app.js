@@ -782,7 +782,9 @@ var APP = (function () {
       toast('ok', 'Reminder timings confirmed', 'Change them any time in Settings.');
     },
 
-    /* Import only the rows the file check passed. */
+    /* Import only the rows the file check passed. A client arrives with
+       their own details and nothing else — no programme, no agreement and
+       no authorisation. Those are decisions, made per client afterwards. */
     'import.clients': function (S) {
       var good = DEMO.importFile.rows.filter(function (r) { return r.outcome === 'ok'; });
       var already = {};
@@ -790,9 +792,22 @@ var APP = (function () {
 
       var toAdd = [];
       good.forEach(function (r) {
-        var src = DEMO.clients.filter(function (c) { return c.id === r.clientId; })[0];
-        if (!src || already[src.mrn]) return;
-        toAdd.push(JSON.parse(JSON.stringify(src)));
+        if (already[r.medicaid]) return;
+        toAdd.push({
+          id: 'c-' + r.medicaid.toLowerCase().replace(/[^a-z0-9]/g, ''),
+          agency: S.agency || (DB.all('agencies')[0] || {}).id || null,
+          name: r.first + ' ' + r.last,
+          dob: r.dob,
+          mrn: r.medicaid,
+          phone: r.phone,
+          address: r.address,
+          status: 'Active',
+          since: DB.stamp().slice(3, 11),
+          waiver: null,
+          program: null,
+          coord: null,
+          agreement: null
+        });
       });
 
       if (!toAdd.length) {
@@ -800,27 +815,63 @@ var APP = (function () {
         return;
       }
 
-      DB.addMany('clients', remapAgencies(toAdd));
-
-      /* Each new client starts with the required documents for their
-         programme, every one of them not yet on file. */
-      var rows = [];
-      toAdd.forEach(function (c) {
-        var prog = DB.all('programmes').filter(function (p) { return p.name === c.waiver; })[0]
-                || DB.all('programmes')[0];
-        (prog ? prog.docs || [] : []).forEach(function (d) {
-          rows.push({ client: c.id, name: d.name, required: d.required !== false,
-                      received: '—', expires: '—', status: 'Missing' });
-        });
-      });
-      if (rows.length) DB.addMany('clientDocs', rows);
-
+      DB.addMany('clients', toAdd);
       if (DB.setupStep() < 5) { DB.setupStep(5); S.vars.setupStep = 5; }
       DB.log(user().name, 'Imported ' + toAdd.length + ' clients from ' + DEMO.importFile.name,
         (DEMO.importFile.rows.length - good.length) + ' rows skipped');
       toast('ok', toAdd.length + ' clients imported',
-        'Saved. Refresh the page and they will still be here.');
+        'Each one still needs a programme, an agreement and an authorisation.');
     },
+
+    /* Open one client and remember which. */
+    'client.open': function (S, el) {
+      S.vars.clientId = el.getAttribute('data-id');
+      return null;
+    },
+
+    /* Put a client on a programme. This is what creates their paperwork list. */
+    'client.programme': function (S) {
+      var c = DB.get('clients', S.vars.clientId) || DB.all('clients')[0];
+      if (!c) return 'stay';
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var prog = DB.get('programmes', val('c-prog'));
+      if (!prog) { toast('bad', 'Pick a programme', 'It decides which documents are required.'); return 'stay'; }
+
+      DB.update('clients', c.id, {
+        waiver: prog.name,
+        program: val('c-service') || prog.fullName || prog.name,
+        coord: val('c-coord') || user().name
+      });
+
+      /* their required documents, none of them on file yet */
+      var existing = DB.all('clientDocs').filter(function (d) { return d.client !== c.id; });
+      var rows = (prog.docs || []).map(function (d) {
+        return { client: c.id, name: d.name, required: d.required !== false,
+                 received: '—', expires: '—', status: 'Missing' };
+      });
+      DB.setCollection('clientDocs', existing.concat(rows));
+
+      DB.log(user().name, 'Put ' + c.name + ' on the ' + prog.name + ' programme',
+        rows.length + ' required documents added');
+      toast('ok', c.name + ' is on ' + prog.name,
+        rows.length + ' required documents are now being tracked, none of them on file yet.');
+    },
+
+    /* Record the signed service agreement. */
+    'client.agreement': function (S) {
+      var c = DB.get('clients', S.vars.clientId) || DB.all('clients')[0];
+      if (!c) return 'stay';
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var start = val('c-start'), end = val('c-end');
+      if (!start || !end) { toast('bad', 'Both dates are needed', 'The system watches the end date.'); return 'stay'; }
+
+      DB.update('clients', c.id, { agreement: { start: start, end: end, status: 'Current' } });
+      DB.log(user().name, 'Recorded a service agreement for ' + c.name, start + ' to ' + end);
+      toast('ok', 'Agreement recorded', 'You will be reminded before ' + end + '.');
+    },
+
     'import.caregivers': function () {
       if (DB.all('caregivers').length) return;
       DB.addMany('caregivers', copyDemo(DEMO.caregivers));

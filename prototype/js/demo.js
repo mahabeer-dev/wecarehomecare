@@ -304,20 +304,27 @@ var DEMO = (function () {
 
   var IMPORT_FILE = {
     name: 'caseload-sample.xlsx',
+    /* Client details only. A programme, an agreement and an authorisation
+       are decisions made per client afterwards, not columns in a file. */
+    columns: ['First name', 'Last name', 'Date of birth', 'Medicaid ID', 'Phone', 'Address', 'EMR link'],
     rows: [
-      { row: 2, first: 'Maria',  last: 'Lopez',   dob: '14/03/1968', medicaid: 'GA-10482',
-        waiver: 'NOW',  outcome: 'ok', clientId: 'c1' },
+      { row: 2, first: 'Maria',  last: 'Lopez',  dob: '14/03/1968', medicaid: 'GA-10482',
+        phone: '(706) 555-0142', address: '18 Pinehurst Way, Athens GA',
+        outcome: 'ok' },
 
-      { row: 3, first: 'Curtis', last: 'Nabors',  dob: '02/09/1954', medicaid: 'GA-10233',
-        waiver: 'COMP', outcome: 'ok', clientId: 'c2' },
+      { row: 3, first: 'Curtis', last: 'Nabors', dob: '02/09/1954', medicaid: 'GA-10233',
+        phone: '(706) 555-0198', address: '4 Colbert Lane, Athens GA',
+        outcome: 'ok' },
 
-      { row: 4, first: 'Adaeze', last: 'Okafor',  dob: '31/02/1970', medicaid: 'GA-10871',
-        waiver: 'NOW',  outcome: 'error',
+      { row: 4, first: 'Adaeze', last: 'Okafor', dob: '31/02/1970', medicaid: 'GA-10871',
+        phone: '(770) 555-0110', address: '22 Marlow Street, Atlanta GA',
+        outcome: 'error',
         field: 'Date of birth', value: '31/02/1970',
         why: 'There is no 31st of February' },
 
-      { row: 5, first: 'Curtis', last: 'Nabors',  dob: '02/09/1954', medicaid: 'GA-10233',
-        waiver: 'COMP', outcome: 'duplicate',
+      { row: 5, first: 'Curtis', last: 'Nabors', dob: '02/09/1954', medicaid: 'GA-10233',
+        phone: '(706) 555-0198', address: '4 Colbert Lane, Athens GA',
+        outcome: 'duplicate',
         field: 'Medicaid ID', value: 'GA-10233',
         why: 'Same person as row 3' }
     ]
