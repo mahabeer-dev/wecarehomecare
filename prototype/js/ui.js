@@ -109,7 +109,14 @@ var UI = (function () {
     o = o || {};
     var inner;
     var id = o.id ? ' id="' + esc(o.id) + '"' : '';
-    if (o.type === 'select') {
+    if (o.type === 'select' && o.options) {
+      inner = '<select class="select" data-inert' + id + '>' +
+        o.options.map(function (op) {
+          var v = (op && op.value !== undefined) ? op.value : op;
+          var l = (op && op.label !== undefined) ? op.label : op;
+          return '<option value="' + esc(v) + '"' + (v === o.value ? ' selected' : '') + '>' + esc(l) + '</option>';
+        }).join('') + '</select>';
+    } else if (o.type === 'select') {
       inner = '<div class="select" data-inert' + id + '>' + esc(o.value) + '</div>';
     } else if (o.type === 'textarea') {
       inner = '<textarea class="textarea" data-inert' + id + '>' + esc(o.value || '') + '</textarea>';

@@ -24,6 +24,7 @@ var SEED = {
       title: 'Owner',
       agency: null,
       status: 'Active',
+      password: 'wechc-2026',   /* set at handover; changeable in the real product */
       createdBy: 'Handover',
       createdOn: 'Day one'
     }

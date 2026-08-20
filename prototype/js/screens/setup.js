@@ -188,51 +188,109 @@
 
   screen('setup.team', {
     title: 'Set up · your team', nav: 'dash',
-    crumb: 'Getting started <span>›</span> <b>Your team</b>',
-    render: function () {
-      return '<div class="page page--narrow">' +
+    crumb: 'Getting started <span>&rsaquo;</span> <b>Your team</b>',
+    render: function (S) {
+      var users = DB.all('users');
+      var me = users.filter(function (u) { return u.role === 'superadmin'; })[0] || users[0];
+      var others = users.filter(function (u) { return u !== me; });
+      var agencies = DB.all('agencies');
+
+      var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt">' +
         '<span class="eyebrow-m">Step 2 of 7</span><h1>Who gets a login</h1>' +
-        '<span class="sub">Office and clinical staff only. Caregivers never get accounts.</span>' +
-        '</span></div>' +
+        '<span class="sub">Office and clinical staff only. Caregivers never get accounts — ' +
+        'they exist as compliance records instead.</span>' +
+        '</span></div>';
 
-        '<div class="card"><div class="card-head"><h3>You</h3></div>' +
-        '<div class="clist"><div class="clist-row">' +
-          '<span class="ava-sm">DB</span>' +
-          '<span style="display:flex;flex-direction:column"><span class="cl-n">Dawn Bostock</span>' +
-          '<span class="cl-s">dawn.bostock@wecarehomecare.com</span></span>' +
-          '<span class="cl-sp"></span>' + UI.badge('Super Admin', 'plum') +
-        '</div></div></div>' +
+      /* you */
+      if (me) {
+        h += '<div class="card"><div class="card-head"><h3>You</h3></div>' +
+          '<div class="clist"><div class="clist-row" style="cursor:default">' +
+            '<span class="ava-sm">' + UI.esc(UI.initials(me.name)) + '</span>' +
+            '<span style="display:flex;flex-direction:column;min-width:0">' +
+              '<span class="cl-n">' + UI.esc(me.name) + '</span>' +
+              '<span class="cl-s">' + UI.esc(me.email) + '</span></span>' +
+            '<span class="cl-sp"></span>' + UI.badge('Super Admin', 'plum') +
+          '</div></div></div>';
+      }
 
-        '<div class="card"><div class="card-head"><h3>Invite the others</h3>' +
-        '<span class="spacer"></span>' + UI.btn('Add another', { cls: 'btn--sm', icon: 'plus' }) + '</div>' +
-        '<div class="card-body">' +
-        '<div class="form-grid">' +
-          UI.field('Email', { value: 'renee.alcott@wecarehomecare.com' }) +
-          UI.field('Role', { type: 'select', value: 'Admin staff' }) +
-          UI.field('Agency', { type: 'select', value: 'Georgia' }) +
-          UI.field('Job title', { value: 'Office Manager' }) +
+      /* everyone added so far */
+      h += '<div class="card"><div class="card-head"><h3>Accounts you have created</h3>' +
+        '<span class="spacer"></span>' +
+        (others.length ? UI.badge(others.length + (others.length === 1 ? ' account' : ' accounts'), 'ok')
+                       : UI.badge('None yet', 'warn')) + '</div>';
+
+      if (others.length) {
+        h += '<div class="clist">';
+        others.forEach(function (u) {
+          h += '<div class="clist-row" style="cursor:default">' +
+            '<span class="ava-sm ' + (u.role === 'nurse' ? 'c3' : 'c2') + '">' +
+              UI.esc(UI.initials(u.name)) + '</span>' +
+            '<span style="display:flex;flex-direction:column;min-width:0">' +
+              '<span class="cl-n">' + UI.esc(u.name) + '</span>' +
+              '<span class="cl-s">' + UI.esc(u.email) +
+                (u.title ? ' · ' + UI.esc(u.title) : '') + '</span>' +
+            '</span><span class="cl-sp"></span>' +
+            UI.badge(DATA.ROLE_LABEL[u.role] || u.role, u.role === 'nurse' ? 'info' : 'neutral') +
+            '<span class="small muted nowrap" style="margin:0 8px">' +
+              UI.esc(u.agency ? DATA.agencyShort(u.agency) : 'all') + '</span>' +
+            '<button class="btn btn--sm btn--ghost" data-do="user.remove" data-id="' + UI.esc(u.id) + '">Remove</button>' +
+          '</div>';
+        });
+        h += '</div>';
+      } else {
+        h += '<div class="card-body"><div class="empty" style="padding:26px 18px">' +
+          UI.icon('badge', 'ei') + '<b>No other accounts yet</b>' +
+          '<span>You are the only person who can sign in. Add your staff below.</span></div></div>';
+      }
+      h += '</div>';
+
+      /* the form */
+      h += '<div class="card"><div class="card-head"><h3>Add someone</h3></div>' +
+        '<div class="card-body"><div class="form-grid">' +
+          UI.field('Full name', { id:'u-name', value:'', placeholder:'Renee Alcott' }) +
+          UI.field('Work email', { id:'u-email', type:'email', value:'', placeholder:'renee.alcott@wecarehomecare.com' }) +
+          UI.field('Role', { id:'u-role', type:'select', value:'admin', options:[
+            { value:'admin', label:'Admin staff — their agency, no settings' },
+            { value:'nurse', label:'Nurse — their clients and own visits' },
+            { value:'superadmin', label:'Super Admin — everything, both agencies' }
+          ]}) +
+          UI.field('Agency', { id:'u-agency', type:'select',
+            value: (agencies[0] || {}).id || '',
+            options: agencies.length
+              ? agencies.map(function (a) { return { value:a.id, label:a.short }; })
+              : [{ value:'', label:'no agencies yet' }] }) +
+          UI.field('Job title', { id:'u-title', value:'', placeholder:'Office Manager' }) +
+          UI.field('Set their password', { id:'u-pass', value:'', placeholder:'at least 6 characters',
+            hint:'You set it now and tell them. They can change it once they are in.' }) +
         '</div>' +
-        '<div class="form-grid" style="border-top:1px solid var(--border);padding-top:14px">' +
-          UI.field('Email', { value: 'yvonne.pryce@wecarehomecare.com' }) +
-          UI.field('Role', { type: 'select', value: 'Nurse' }) +
-          UI.field('Agency', { type: 'select', value: 'Georgia' }) +
-          UI.field('Job title', { value: 'Registered Nurse' }) +
-        '</div>' +
-        '</div></div>' +
+        '<div class="row"><span class="spacer"></span>' +
+          '<button class="btn btn--primary" data-do="user.add">' + UI.icon('plus') + 'Create this account</button>' +
+        '</div></div></div>';
 
-        '<div class="card"><div class="card-head"><h3>What each role can reach</h3></div>' +
+      h += UI.banner('info', 'Add as many as you need',
+        'There is no limit. Anyone you create here can sign in immediately with the password you set. ' +
+        'The 150 caregivers do not appear on this screen at all.');
+
+      /* what each role reaches */
+      h += '<div class="card"><div class="card-head"><h3>What each role can reach</h3></div>' +
         '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
         '<th>Role</th><th>Sees</th><th>Cannot reach</th></tr></thead><tbody>' +
-        '<tr data-row><td class="nm">Super Admin</td><td class="small">Everything, both agencies</td><td class="small muted">—</td></tr>' +
-        '<tr data-row><td class="nm">Admin staff</td><td class="small">Their own agency</td><td class="small muted">Settings, the other agency</td></tr>' +
-        '<tr data-row><td class="nm">Nurse</td><td class="small">Their clients and their own visits</td><td class="small muted">Caregivers, money, quality, settings</td></tr>' +
-        '</tbody></table></div></div>' +
+        '<tr data-row><td class="nm">Super Admin</td><td class="small">Everything, every agency</td>' +
+        '<td class="small muted">—</td></tr>' +
+        '<tr data-row><td class="nm">Admin staff</td><td class="small">Their own agency</td>' +
+        '<td class="small muted">Settings, other agencies</td></tr>' +
+        '<tr data-row><td class="nm">Nurse</td><td class="small">Their clients and their own visits</td>' +
+        '<td class="small muted">Caregivers, money, quality, settings</td></tr>' +
+        '</tbody></table></div></div>';
 
-        '<div class="card"><div class="card-foot">' + UI.btn('Back', { goto: 'setup.agencies' }) +
-        '<span class="spacer"></span>' +
-        '<button class="btn btn--primary" data-do="setup.team" data-goto="setup.programmes">' + UI.icon('arrow') + 'Send the invitations</button>' +
-        '</div></div></div>';
+      h += '<div class="card"><div class="card-foot">' +
+        UI.btn('Back', { goto: 'setup.agencies' }) + '<span class="spacer"></span>' +
+        '<button class="btn btn--primary" data-do="setup.team" data-goto="setup.programmes">' +
+          UI.icon('arrow') + (others.length ? 'Continue' : 'Continue on my own') + '</button>' +
+        '</div></div>';
+
+      return h + '</div>';
     }
   });
 

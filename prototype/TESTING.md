@@ -3,7 +3,8 @@
 No backend, no database, no accounts to create. Everything below runs in the browser.
 
 **Open** `index.html`, or the deployed URL.
-**Demo password for every account:** `wechc-2026`
+**Password:** on a brand new install the only account is Dawn's, and her password is
+`wechc-2026`. Every other account gets whatever password Dawn types when she creates it.
 
 Set the flow selector in the bottom bar to **“— free navigation —”** first. Otherwise you are
 following a script rather than testing.
@@ -125,8 +126,11 @@ history. It answers the question "what does Dawn actually do first?"
 ### The two things to actually verify
 
 - [ ] **Only one account exists at the start.** The sign-in screen offers Dawn and nobody
-      else, and says so. Renee and Yvonne do not exist until setup step 2 creates them — go
-      back to the sign-in screen after that step and all three are offered.
+      else, and says so.
+- [ ] **Dawn creates the rest herself.** Step 2 is an empty form — name, email, role, agency,
+      job title and a password she chooses. Add as many as you like. Then go back to the
+      sign-in screen: every account you created is listed, and **each one only accepts the
+      password you set for it**.
 - [ ] **It saves.** Do two or three setup steps, then **refresh the page**. Your progress, your
       agencies and your invited users are all still there. Nothing is held in memory only.
 

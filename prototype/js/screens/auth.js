@@ -31,41 +31,35 @@
     return el ? String(el.value || '').trim() : '';
   }
 
-  var ACCOUNTS = [
-    { key:'owner', email:'dawn.bostock@wecarehomecare.com',  name:'Dawn Bostock',  title:'Owner · sees both agencies',       role:'superadmin', agency:'ga', cls:'' },
-    { key:'admin', email:'renee.alcott@wecarehomecare.com',  name:'Renee Alcott',  title:'Office Manager · Georgia only',    role:'admin',      agency:'ga', cls:'c2' },
-    { key:'nurse', email:'yvonne.pryce@wecarehomecare.com',  name:'Yvonne Pryce',  title:'Registered Nurse · Georgia only',  role:'nurse',      agency:'ga', cls:'c3' }
-  ];
+  /* Every account that exists, in the order they were created. */
+  function available() {
+    return DB.all('users').map(function (u, i) {
+      return {
+        key: u.id, id: u.id, name: u.name, email: u.email, role: u.role,
+        agency: u.agency, password: u.password,
+        cls: u.role === 'superadmin' ? '' : u.role === 'nurse' ? 'c3' : 'c2',
+        title: (u.title || DATA.ROLE_LABEL[u.role]) +
+               (u.role === 'superadmin' ? ' · every agency'
+                : u.agency ? ' · ' + DATA.agencyShort(u.agency) + ' only' : '')
+      };
+    });
+  }
 
   function accountFor(key) {
     var live = available();
     for (var i = 0; i < live.length; i++) if (live[i].key === key) return live[i];
-    return live[0] || ACCOUNTS[0];
+    return live[0] || null;
   }
 
-  /* exposed so the router can apply the chosen account on a successful sign-in */
   window.AUTH_ACCOUNTS = { get: accountFor, available: available };
 
-  /* Only accounts that actually exist can be signed into. On a brand new
-     install that is one person. */
-  function available() {
-    var byRole = {};
-    DB.all('users').forEach(function (u) { byRole[u.role] = u; });
-    return ACCOUNTS.filter(function (a) { return !!byRole[a.role]; })
-                   .map(function (a) {
-                     var u = byRole[a.role];
-                     return { key:a.key, cls:a.cls, role:a.role, agency:a.agency,
-                              email:u.email, name:u.name, title:u.title +
-                                (u.role === 'superadmin' ? ' · sees both agencies'
-                                 : u.agency ? ' · ' + ((DATA.AGENCIES[u.agency]||{}).short || u.agency) + ' only' : '') };
-                   });
-  }
-
   function picker(S) {
-    var ACCOUNTS = available();
-    var sel = S.vars.loginAs || (ACCOUNTS[0] && ACCOUNTS[0].key) || 'owner';
-    if (ACCOUNTS.length === 1) {
-      var only = ACCOUNTS[0];
+    var list = available();
+    if (!list.length) return '';
+    var sel = S.vars.loginAs || list[0].key;
+
+    if (list.length === 1) {
+      var only = list[0];
       return '<div class="field"><label>Signing in as</label>' +
         '<div class="card" style="padding:10px 12px"><span class="row" style="gap:10px">' +
           '<span class="ava-sm">' + UI.esc(UI.initials(only.name)) + '</span>' +
@@ -74,11 +68,12 @@
         '</span></div>' +
         '<span class="hint">This is the only account that exists. You create the others once you are in.</span></div>';
     }
+
     var h = '<div class="field"><label>Sign in as</label>' +
-            '<div style="display:flex;flex-direction:column;gap:6px">';
-    ACCOUNTS.forEach(function (a) {
+            '<div style="display:flex;flex-direction:column;gap:6px;max-height:230px;overflow-y:auto">';
+    list.forEach(function (a) {
       var on = a.key === sel;
-      h += '<button class="card" data-login-as="' + a.key + '" ' +
+      h += '<button class="card" data-login-as="' + UI.esc(a.key) + '" ' +
            'style="padding:10px 12px;text-align:left;cursor:pointer;' +
            (on ? 'border-color:var(--p-500);box-shadow:0 0 0 3px var(--p-100)' : '') + '">' +
            '<span class="row" style="gap:10px">' +
@@ -86,12 +81,12 @@
              '<span style="display:flex;flex-direction:column;min-width:0">' +
                '<b class="small">' + UI.esc(a.name) + '</b>' +
                '<span class="small muted">' + UI.esc(a.title) + '</span>' +
-             '</span>' +
-             '<span class="spacer"></span>' +
+             '</span><span class="spacer"></span>' +
              (on ? UI.badge('Selected', 'plum') : '') +
            '</span></button>';
     });
-    return h + '</div><span class="hint">Three real roles. Sign out from the sidebar to swap.</span></div>';
+    return h + '</div><span class="hint">' + list.length +
+           ' accounts exist. Sign out from the sidebar to swap.</span></div>';
   }
 
   screen('auth.login', {
@@ -100,22 +95,25 @@
     /* Read what was actually typed instead of always failing. */
     intercept: function (S) {
       var pw = typedPassword();
-      if (pw === DEMO_PW) { S.vars.authErr = null; return 'auth.loading'; }
+      var who = accountFor(S.vars.loginAs);
+      var theirs = (who && who.password) || DEMO_PW;
+      if (pw === theirs) { S.vars.authErr = null; return 'auth.loading'; }
       S.vars.authErr = pw ? 'wrong' : 'empty';
       S.vars.authTried = pw;
       return 'auth.error';
     },
     render: function (S) {
-      var a = accountFor(S.vars.loginAs || 'admin');
+      var a = accountFor(S.vars.loginAs) || {};
       return form(
         '<span class="eyebrow-m">We Care Home Care</span>' +
         '<h1 style="margin:0;font-size:26px;font-weight:650;letter-spacing:-.02em">Sign in</h1>' +
         '<p class="small muted" style="margin:0 0 4px">Administration and clinical staff only. ' +
         'Caregivers do not have accounts.</p>' +
         picker(S) +
-        UI.field('Work email', { type: 'email', value: a.email }) +
+        UI.field('Work email', { type: 'email', value: a.email || '' }) +
         UI.field('Password', { type: 'password', id: 'pw', value: '', placeholder: 'Enter your password' }) +
-        '<p class="small muted" style="margin:-6px 0 0">Demo password: <b class="mono">' + DEMO_PW + '</b></p>' +
+        '<p class="small muted" style="margin:-6px 0 0">Password for this account: <b class="mono">' +
+          UI.esc((a && a.password) || DEMO_PW) + '</b></p>' +
         UI.btn('Sign in', { cls: 'btn--primary btn--lg btn--block', icon: 'arrow' }) +
         '<p class="small muted" style="margin:2px 0 0;text-align:center">Forgot your password?</p>'
       );
@@ -129,14 +127,14 @@
     intercept: function (S) { S.vars.authErr = null; return 'auth.loading'; },
     render: function (S) {
       var empty = S.vars.authErr === 'empty';
-      var a = accountFor(S.vars.loginAs || 'admin');
+      var a = accountFor(S.vars.loginAs) || {};
       return form(
         '<span class="eyebrow-m">We Care Home Care</span>' +
         '<h1 style="margin:0;font-size:26px;font-weight:650;letter-spacing:-.02em">Sign in</h1>' +
         '<p class="small muted" style="margin:0 0 4px">Administration and clinical staff only. ' +
         'Caregivers do not have accounts.</p>' +
         picker(S) +
-        UI.field('Work email', { type: 'email', value: a.email }) +
+        UI.field('Work email', { type: 'email', value: a.email || '' }) +
         UI.field('Password', {
           type: 'password', id: 'pw', bad: true,
           value: empty ? '' : (S.vars.authTried || 'wrongpass'),
@@ -144,7 +142,8 @@
             ? 'Enter your password to continue.'
             : 'That password is not correct. Two attempts remaining before the account locks.'
         }) +
-        '<p class="small muted" style="margin:-6px 0 0">Demo password: <b class="mono">' + DEMO_PW + '</b></p>' +
+        '<p class="small muted" style="margin:-6px 0 0">Password for this account: <b class="mono">' +
+          UI.esc((a && a.password) || DEMO_PW) + '</b></p>' +
         UI.btn('Sign in', { cls: 'btn--primary btn--lg btn--block', icon: 'arrow' }) +
         '<p class="small muted" style="margin:2px 0 0;text-align:center">Forgot your password?</p>'
       );

@@ -328,9 +328,9 @@ var DEMO = (function () {
     agencies: AGENCIES,
     users: {
       admin: { id:'u-admin', name:'Renee Alcott', initials:'RA', email:'renee.alcott@wecarehomecare.com',
-               role:'admin', title:'Office Manager', agency:'ga', status:'Active' },
+               role:'admin', title:'Office Manager', agency:'ga', status:'Active', password:'wechc-2026' },
       nurse: { id:'u-nurse', name:'Yvonne Pryce', initials:'YP', email:'yvonne.pryce@wecarehomecare.com',
-               role:'nurse', title:'Registered Nurse', agency:'ga', status:'Active' }
+               role:'nurse', title:'Registered Nurse', agency:'ga', status:'Active', password:'wechc-2026' }
     },
     clients: CLIENTS, caregivers: CAREGIVERS, credentials: CREDENTIALS,
     auths: AUTHS, usage: USAGE, incidents: INCIDENTS, hosps: HOSPS,

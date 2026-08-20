@@ -77,7 +77,9 @@ nothing else the dashboard could honestly show. The order is real; each step nee
 before it:
 
 1. **Name your agencies** — you type them in, as many as you run
-2. **Invite your team** — this is where the other accounts come into existence
+2. **Invite your team** — an empty form: name, email, role, agency, job title and a
+   password you choose. Add as many as you need; each person then signs in with the
+   password you set for them
 3. **Add your waiver programmes** — and the documents each requires
 4. **Check the reminder timings** — defaults ship with the product
 5. **Import your clients** — from a spreadsheet

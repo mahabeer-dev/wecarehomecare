@@ -28,10 +28,12 @@ var APP = (function () {
   function state() { return S; }
 
   function user() {
-    var u = DATA.USERS;
-    var who = (S.role === 'superadmin') ? u.owner : (S.role === 'nurse' ? u.nurse : u.admin);
-    return who || u.owner || { name: '—', initials: '—', role: S.role };
+    var signedIn = S.vars.loginAs && DB.get('users', S.vars.loginAs);
+    if (signedIn) return signedIn;
+    var byRole = DB.all('users').filter(function (u) { return u.role === S.role; })[0];
+    return byRole || DB.all('users')[0] || { name: '—', initials: '—', role: S.role };
   }
+
 
   function agency() {
     var m = DATA.AGENCIES;
@@ -53,11 +55,13 @@ var APP = (function () {
 
   /* Sign-in succeeded: become whoever was picked on the login screen. */
   function applyAccount() {
-    if (!window.AUTH_ACCOUNTS) return;
-    var a = window.AUTH_ACCOUNTS.get(S.vars.loginAs || 'admin');
-    S.role = a.role;
-    S.agency = a.agency || 'ga';
+    var u = DB.get('users', S.vars.loginAs) || DB.all('users')[0];
+    if (!u) return;
+    S.vars.loginAs = u.id;
+    S.role = u.role;
+    S.agency = u.agency || (DB.all('agencies')[0] || {}).id || null;
   }
+
 
   /* ---------------- navigation ---------------- */
 
@@ -173,6 +177,7 @@ var APP = (function () {
        fall back to whoever actually exists. */
     var roles = {};
     DB.all('users').forEach(function (u) { roles[u.role] = true; });
+    if (S.vars.loginAs && !DB.get('users', S.vars.loginAs)) S.vars.loginAs = null;
     if (!roles[S.role]) {
       S.role = DB.all('users').length ? DB.all('users')[0].role : 'superadmin';
       S.vars.loginAs = null;
@@ -560,19 +565,52 @@ var APP = (function () {
       toast('ok', DB.all('agencies').length + ' agenc' + (DB.all('agencies').length === 1 ? 'y' : 'ies') + ' saved',
         'You can add more later in Settings.');
     },
-    'setup.team': function () {
-      if (DB.all('users').length > 1) return;
-      var first = (DB.all('agencies')[0] || {}).id || null;
-      DB.add('users', { id:'u-admin', name:'Renee Alcott', initials:'RA',
-        email:'renee.alcott@wecarehomecare.com', role:'admin', title:'Office Manager',
-        agency:first, status:'Invited' });
-      DB.add('users', { id:'u-nurse', name:'Yvonne Pryce', initials:'YP',
-        email:'yvonne.pryce@wecarehomecare.com', role:'nurse', title:'Registered Nurse',
-        agency:first, status:'Invited' });
-      DB.setupStep(2); S.vars.setupStep = 2;
-      DB.log(user().name, 'Invited 2 users', 'Setup');
-      toast('ok', 'Invitations sent', 'Renee and Yvonne can now sign in. Their accounts did not exist until now.');
+    'user.add': function (S) {
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+      var name = val('u-name'), email = val('u-email'), pass = val('u-pass');
+      var role = val('u-role') || 'admin', agencyId = val('u-agency'), title = val('u-title');
+
+      if (!name)  { toast('bad', 'Give them a name', 'A full name is required.'); return 'stay'; }
+      if (!email) { toast('bad', 'Give them an email', 'It is what they sign in with.'); return 'stay'; }
+      if (email.indexOf('@') < 0) { toast('bad', 'That email does not look right', 'It needs an @ in it.'); return 'stay'; }
+      if (pass.length < 6) { toast('bad', 'Set a longer password', 'At least six characters.'); return 'stay'; }
+
+      var taken = DB.all('users').some(function (u) {
+        return (u.email || '').toLowerCase() === email.toLowerCase();
+      });
+      if (taken) { toast('bad', 'That email already has an account', 'Every account needs its own email.'); return 'stay'; }
+
+      DB.add('users', {
+        name: name, initials: UI.initials(name).toUpperCase(), email: email,
+        role: role, title: title || DATA.ROLE_LABEL[role],
+        agency: role === 'superadmin' ? null : (agencyId || (DB.all('agencies')[0] || {}).id || null),
+        password: pass, status: 'Active'
+      });
+      DB.log(user().name, 'Created account for ' + name + ' (' + DATA.ROLE_LABEL[role] + ')', 'Setup');
+      toast('ok', name + ' can now sign in', 'Tell them the password you just set.');
+      return 'stay';
     },
+
+    'user.remove': function (S, el) {
+      var id = el.getAttribute('data-id');
+      var u = DB.get('users', id);
+      var admins = DB.all('users').filter(function (x) { return x.role === 'superadmin'; }).length;
+      if (u && u.role === 'superadmin' && admins < 2) {
+        toast('bad', 'You cannot remove the last Super Admin', 'Somebody has to be able to reach Settings.');
+        return 'stay';
+      }
+      DB.remove('users', id);
+      DB.log(user().name, 'Removed the account for ' + ((u && u.name) || id), 'Setup');
+      return 'stay';
+    },
+
+    'setup.team': function (S) {
+      if (DB.setupStep() < 2) { DB.setupStep(2); S.vars.setupStep = 2; }
+      var n = DB.all('users').length - 1;
+      toast('ok', n ? n + ' account' + (n === 1 ? '' : 's') + ' created' : 'Continuing on your own',
+        n ? 'They can sign in with the passwords you set.' : 'You can add staff later in Settings.');
+    },
+
     'setup.programmes': function () {
       if (DB.all('programmes').length) return;
       var docs = DEMO.checklist;
