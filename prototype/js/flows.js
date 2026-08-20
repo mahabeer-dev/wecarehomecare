@@ -129,11 +129,14 @@ FLOWS['hospital'] = {
 FLOWS['caregivers'] = {
   title: 'Caregiver papers that expire',
   steps: [
-    { screen: 'cg.list',   label: 'Open someone with an expired licence', data: 'demo', role: 'admin', agency: 'ga' },
-    { screen: 'cg.detail', label: 'Record the renewal' },
-    { screen: 'cg.renew',  label: 'The old record is kept' },
-    { screen: 'cg.detail', label: 'See everything expiring' },
-    { screen: 'cg.expiry', label: 'Finish' }
+    { screen: 'cg.import',       label: 'Check the file', data: 'demo', role: 'admin', agency: 'ga' },
+    { screen: 'cg.import.check', label: 'Two import, one duplicate skipped' },
+    { screen: 'cg.import.done',  label: 'Open one of them' },
+    { screen: 'cg.list',         label: 'Give them a role' },
+    { screen: 'cg.detail',       label: 'Add what they have to hold' },
+    { screen: 'cg.role',         label: 'Their credentials, with dates' },
+    { screen: 'cg.credential',   label: 'See everything expiring' },
+    { screen: 'cg.expiry',       label: 'Finish' }
   ]
 };
 

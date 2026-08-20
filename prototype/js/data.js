@@ -87,7 +87,30 @@ var DATA = (function () {
 
   Object.defineProperty(API, 'AGENCIES',    { get: agencyMap });
   Object.defineProperty(API, 'USERS',       { get: usersByRole });
-  Object.defineProperty(API, 'CREDENTIALS', { get: function () { return DB.all('credentials') || {}; } });
+  Object.defineProperty(API, 'CREDENTIALS',      { get: function () { return DB.all('creds'); } });
+  Object.defineProperty(API, 'CREDENTIAL_TYPES', { get: function () { return DB.all('credentialTypes'); } });
+  Object.defineProperty(API, 'CAREGIVER_FILE',   { get: function () { return DEMO.caregiverFile; } });
+
+  function credsFor(caregiverId) {
+    return DB.all('creds').filter(function (c) { return c.caregiver === caregiverId; });
+  }
+
+  /* Worst state across everything a caregiver currently has to hold.
+     Replaced records stay on file for audit but are not counted. */
+  function compliance(caregiverId) {
+    var list = credsFor(caregiverId).filter(function (c) { return c.status !== 'replaced'; });
+    if (!list.length) return { state: 'none', total: 0, expired: 0, soon: 0, ok: 0 };
+    var expired = list.filter(function (c) { return c.status === 'expired'; }).length;
+    var soon    = list.filter(function (c) { return c.status === 'soon'; }).length;
+    return {
+      state: expired ? 'expired' : soon ? 'soon' : 'ok',
+      total: list.length, expired: expired, soon: soon,
+      ok: list.length - expired - soon
+    };
+  }
+
+  API.credsFor = credsFor;
+  API.compliance = compliance;
   /* ---------------- derived client state ----------------
      A client record stores only what was imported. Everything a manager
      sees about them — paperwork state, budget pressure, recent incidents —

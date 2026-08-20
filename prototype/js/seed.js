@@ -59,7 +59,15 @@ var SEED = {
   clients:     [],
   clientDocs:  [],   /* one row per client per required document */
   caregivers:  [],
-  credentials: {},
+  creds:       [],   /* one row per caregiver per requirement */
+
+  /* What every caregiver has to hold. Editable in Settings. */
+  credentialTypes: [
+    { name: "Driver's licence",  renews: '4 years'  },
+    { name: 'CPR / First Aid',   renews: '2 years'  },
+    { name: 'Annual training',   renews: '12 months' },
+    { name: 'Background check',  renews: '4 years'  }
+  ],
   auths:       [],
   usage:       [],
   incidents:   [],

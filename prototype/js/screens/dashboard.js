@@ -15,7 +15,7 @@
     { n:3, label:'Add your waiver programmes', goto:'setup.programmes' },
     { n:4, label:'Check the reminder timings', goto:'set.reminders' },
     { n:5, label:'Import your clients',        goto:'clients.import' },
-    { n:6, label:'Import your caregivers',     goto:'cg.list' },
+    { n:6, label:'Import your caregivers',     goto:'cg.import' },
     { n:7, label:'Add authorisations',         goto:'budget.setup' }
   ];
 

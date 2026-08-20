@@ -330,6 +330,27 @@ var DEMO = (function () {
     ]
   };
 
+  /* ---------------- the caregiver import file ----------------
+     Their details only. Role, agency and every credential are set by an
+     administrator afterwards, because they are decisions, not columns. */
+
+  var CAREGIVER_FILE = {
+    name: 'staff-sample.xlsx',
+    columns: ['First name', 'Last name', 'Phone', 'Email'],
+    rows: [
+      { row: 2, first: 'Tanya',  last: 'Fields', phone: '(706) 555-0177',
+        email: 'tanya.fields@wecarehomecare.com', outcome: 'ok' },
+
+      { row: 3, first: 'Marcus', last: 'Odell',  phone: '(706) 555-0163',
+        email: 'marcus.odell@wecarehomecare.com', outcome: 'ok' },
+
+      { row: 4, first: 'Tanya',  last: 'Fields', phone: '(706) 555-0177',
+        email: 'tanya.fields@wecarehomecare.com', outcome: 'duplicate',
+        field: 'Email', value: 'tanya.fields@wecarehomecare.com',
+        why: 'Same person as row 2' }
+    ]
+  };
+
   return {
     agencies: AGENCIES,
     users: {
@@ -342,6 +363,7 @@ var DEMO = (function () {
     auths: AUTHS, usage: USAGE, incidents: INCIDENTS, hosps: HOSPS,
     qi: QI, isp: ISP, oversight: OVERSIGHT, tasks: TASKS,
     checklist: CHECKLIST, audit: AUDIT,
-    importFile: IMPORT_FILE
+    importFile: IMPORT_FILE,
+    caregiverFile: CAREGIVER_FILE
   };
 })();

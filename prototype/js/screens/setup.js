@@ -12,7 +12,7 @@
     { id:'programmes', label:'Add your waiver programmes',sub:'And the documents each one requires',  goto:'setup.programmes', icon:'doc' },
     { id:'reminders',  label:'Check the reminder timings',sub:'Defaults are sensible — change if not',goto:'set.reminders',    icon:'clock' },
     { id:'clients',    label:'Import your clients',       sub:'From a spreadsheet',                   goto:'clients.import',   icon:'upload' },
-    { id:'staff',      label:'Import your caregivers',    sub:'With their licences and training',     goto:'cg.list',          icon:'shield' },
+    { id:'staff',      label:'Import your caregivers',    sub:'Their details — roles come after',      goto:'cg.import',        icon:'shield' },
     { id:'auths',      label:'Add authorisations',        sub:'Then the budget tracking starts',      goto:'budget.setup',     icon:'money' }
   ];
 

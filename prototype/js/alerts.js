@@ -44,10 +44,9 @@ var ALERTS = (function () {
     });
 
     /* --- caregiver credentials --- */
-    var creds = DATA.CREDENTIALS || {};
     DATA.inAgency(DATA.CAREGIVERS, agency).forEach(function (g) {
-      (creds[g.id] || []).forEach(function (c) {
-        if (c.status !== 'expired' && c.status !== 'soon') return;
+      DATA.credsFor(g.id).forEach(function (c) {
+        if (c.status !== 'expired' && c.status !== 'soon') return;   /* replaced ones are history */
         out.push({ kind: c.status === 'expired' ? 'Expired' : 'Due soon',
                    what: c.name + (c.status === 'expired' ? ' expired' : ' expiring'),
                    who: g.name + ' · caregiver', when: c.due, goto:'cg.detail' });
@@ -116,12 +115,14 @@ var ALERTS = (function () {
   /* Caregiver compliance counts. */
   function compliance(agency) {
     var list = DATA.inAgency(DATA.CAREGIVERS, agency);
-    return {
-      expired: list.filter(function (g) { return g.worst === 'expired'; }).length,
-      soon:    list.filter(function (g) { return g.worst === 'soon'; }).length,
-      ok:      list.filter(function (g) { return g.worst === 'ok'; }).length,
-      total:   list.length
-    };
+    var out = { expired: 0, soon: 0, ok: 0, total: list.length };
+    list.forEach(function (g) {
+      var st = DATA.compliance(g.id).state;
+      if (st === 'expired') out.expired++;
+      else if (st === 'soon') out.soon++;
+      else if (st === 'ok') out.ok++;
+    });
+    return out;
   }
 
   return { compute: compute, recent: recent, compliance: compliance };

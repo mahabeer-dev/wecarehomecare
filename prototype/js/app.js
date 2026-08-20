@@ -435,8 +435,12 @@ var APP = (function () {
     'clients.import.done': 'clients.list',
 
     'cg.list': 'cg.detail',
-    'cg.detail': 'cg.renew',
-    'cg.renew': 'cg.expiry',
+    'cg.import': 'cg.import.check',
+    'cg.import.check': 'cg.import.done',
+    'cg.import.done': 'cg.list',
+    'cg.role': 'cg.credential',
+    'cg.detail': 'cg.credential',
+    'cg.credential': 'cg.detail',
     'cg.expiry': 'cg.list',
 
     'budget.list': 'budget.detail',
@@ -872,14 +876,107 @@ var APP = (function () {
       toast('ok', 'Agreement recorded', 'You will be reminded before ' + end + '.');
     },
 
-    'import.caregivers': function () {
-      if (DB.all('caregivers').length) return;
-      DB.addMany('caregivers', copyDemo(DEMO.caregivers));
-      DB.setCollection('credentials', JSON.parse(JSON.stringify(DEMO.credentials)));
-      DB.setupStep(6); S.vars.setupStep = 6;
-      DB.log(user().name, 'Imported ' + DEMO.caregivers.length + ' caregivers', 'Bulk import');
-      toast('ok', DEMO.caregivers.length + ' caregivers imported', 'With their licences and training dates.');
+    /* Their details only. Role, agency and credentials come afterwards. */
+    'import.caregivers': function (S) {
+      var good = DEMO.caregiverFile.rows.filter(function (r) { return r.outcome === 'ok'; });
+      var already = {};
+      DB.all('caregivers').forEach(function (g) { already[(g.email || '').toLowerCase()] = true; });
+
+      var toAdd = [];
+      good.forEach(function (r) {
+        if (already[r.email.toLowerCase()]) return;
+        toAdd.push({
+          id: 'g-' + r.email.split('@')[0].replace(/[^a-z0-9]/g, ''),
+          agency: null,
+          name: r.first + ' ' + r.last,
+          phone: r.phone,
+          email: r.email,
+          role: null,
+          hired: null
+        });
+      });
+
+      if (!toAdd.length) {
+        toast('info', 'Those people are already here', 'Nothing was imported twice.');
+        return;
+      }
+
+      DB.addMany('caregivers', toAdd);
+      if (DB.setupStep() < 6) { DB.setupStep(6); S.vars.setupStep = 6; }
+      DB.log(user().name, 'Imported ' + toAdd.length + ' caregivers from ' + DEMO.caregiverFile.name,
+        (DEMO.caregiverFile.rows.length - good.length) + ' rows skipped');
+      toast('ok', toAdd.length + ' caregivers imported',
+        'Each one still needs a role and their credentials adding.');
     },
+
+    'cg.open': function (S, el) { S.vars.cgId = el.getAttribute('data-id'); return null; },
+
+    /* Give them a job and an agency. */
+    'cg.role': function (S) {
+      var g = DB.get('caregivers', S.vars.cgId) || DB.all('caregivers')[0];
+      if (!g) return 'stay';
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var role = val('g-role');
+      if (!role) { toast('bad', 'Pick a job title', 'It decides what they can be assigned to.'); return 'stay'; }
+
+      DB.update('caregivers', g.id, {
+        role: role,
+        agency: val('g-agency') || (DB.all('agencies')[0] || {}).id || null,
+        hired: val('g-hired') || DB.stamp().slice(3, 11)
+      });
+      DB.log(user().name, 'Set ' + g.name + ' as ' + role, 'Staff setup');
+      toast('ok', g.name + ' is set up as a ' + role.toLowerCase(),
+        'Now add the licences and training they have to hold.');
+    },
+
+    /* Add one credential with its dates. */
+    'cred.add': function (S) {
+      var g = DB.get('caregivers', S.vars.cgId) || DB.all('caregivers')[0];
+      if (!g) return 'stay';
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var name = val('cr-name');
+      if (!name) { toast('bad', 'Name the requirement', 'For example: CPR / First Aid.'); return 'stay'; }
+      if (DATA.credsFor(g.id).some(function (c) { return c.name.toLowerCase() === name.toLowerCase(); })) {
+        toast('bad', 'That is already listed', 'Renew it instead of adding it twice.');
+        return 'stay';
+      }
+
+      var status = val('cr-status') || 'ok';
+      DB.add('creds', {
+        caregiver: g.id, name: name,
+        done: val('cr-done') || '—',
+        due: val('cr-due') || '—',
+        status: status
+      });
+      DB.log(user().name, 'Added "' + name + '" for ' + g.name, 'Staff setup');
+      toast('ok', 'Added for ' + g.name.split(' ')[0],
+        status === 'ok' ? 'You will be reminded before it expires.'
+                        : 'It is already showing on the dashboard.');
+      return 'stay';
+    },
+
+    'cred.remove': function (S, el) {
+      var id = el.getAttribute('data-id');
+      var c = DB.get('creds', id);
+      DB.remove('creds', id);
+      DB.log(user().name, 'Removed "' + ((c && c.name) || '?') + '"', 'Staff setup');
+      return 'stay';
+    },
+
+    /* Renewing keeps the old record and adds a fresh one. */
+    'cred.renew': function (S, el) {
+      var c = DB.get('creds', el.getAttribute('data-id'));
+      if (!c) return 'stay';
+      DB.update('creds', c.id, { status: 'replaced', replacedOn: DB.stamp().slice(0, 11) });
+      DB.add('creds', { caregiver: c.caregiver, name: c.name,
+                        done: DB.stamp().slice(0, 11), due: '—', status: 'ok' });
+      DB.log(user().name, 'Renewed "' + c.name + '"', 'The previous record was kept');
+      toast('ok', c.name + ' renewed', 'The expired record is kept on file, not overwritten.');
+      return 'stay';
+    },
+
     'setup.finish': function (S) {
       /* Only for clients that were actually imported. */
       var have = {};

@@ -98,6 +98,19 @@ var DB = (function () {
       });
     });
     state.caregivers  = clone(DEMO.caregivers);
+    state.creds = [];
+    var CRED = clone(DEMO.credentials || {});
+    state.caregivers.forEach(function (g) {
+      (CRED[g.id] || [
+        { name:"Driver's licence", done:'20 Jun 2023', due:'20 Jun 2027', status:'ok' },
+        { name:'CPR / First Aid',  done:'11 Mar 2025', due:'11 Mar 2027', status:'ok' },
+        { name:'Annual training',  done:'02 Feb 2026', due:'02 Feb 2027', status:'ok' },
+        { name:'Background check', done:'14 Jul 2024', due:'14 Jul 2028', status:'ok' }
+      ]).forEach(function (c) {
+        state.creds.push({ id: 'cr-' + g.id + '-' + c.name.replace(/[^a-z]/gi, '').toLowerCase(),
+                           caregiver: g.id, name: c.name, done: c.done, due: c.due, status: c.status });
+      });
+    });
     state.credentials = clone(DEMO.credentials);
     state.auths       = clone(DEMO.auths);
     state.usage       = clone(DEMO.usage);
