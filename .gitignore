@@ -4,6 +4,9 @@ PROJECT-IN-SIMPLE-WORDS.md
 SYSTEM-IN-SIMPLE-WORDS.md
 SYSTEM-IN-SIMPLE-WORDS.html
 
+# Email drafts — working documents, not deliverables
+REPLY-TO-DAWN-*.md
+
 # Tooling
 .claude/settings.local.json
 .vercel/
