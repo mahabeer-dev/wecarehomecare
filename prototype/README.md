@@ -86,7 +86,8 @@ before it:
    existing one, then edit the document list
 4. **Check the reminder timings** — eight rules ship as defaults, and every one can be
    edited, switched off or deleted; add your own for anything else you want chased
-5. **Import your clients** — from a spreadsheet
+5. **Import your clients** — one sample spreadsheet with four rows: two that import,
+   one that cannot be read and one duplicate. The two good ones are really written
 6. **Import your caregivers** — with their licences
 7. **Add authorisations** — and only now does budget tracking begin
 

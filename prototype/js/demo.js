@@ -306,23 +306,30 @@ var DEMO = (function () {
     { when:'02 Jan 2026, 16:08', who:'Renee Alcott',  what:'Imported 38 clients from spreadsheet',         why:'Bulk import' }
   ];
 
-  /* ---------------- import fixtures ---------------- */
+  /* ---------------- the sample import file ----------------
+     One small spreadsheet with one of each outcome, so every path
+     through the importer is visible in a single pass. */
 
-  var IMPORT_ROWS = [
-    { row:2, name:'Maria Lopez',      dob:'14/03/1968', waiver:'NOW',  ok:true },
-    { row:3, name:'Curtis Nabors',    dob:'02/09/1954', waiver:'COMP', ok:true },
-    { row:4, name:'Adaeze Okafor',    dob:'23/06/1979', waiver:'NOW',  ok:true },
-    { row:5, name:'Harold Bramlett',  dob:'11/11/1947', waiver:'COMP', ok:true },
-    { row:6, name:'Sylvia Trent',     dob:'30/01/1962', waiver:'NOW',  ok:true }
-  ];
+  var IMPORT_FILE = {
+    name: 'caseload-sample.xlsx',
+    rows: [
+      { row: 2, first: 'Maria',  last: 'Lopez',   dob: '14/03/1968', medicaid: 'GA-10482',
+        waiver: 'NOW',  outcome: 'ok', clientId: 'c1' },
 
-  var IMPORT_ERRORS = [
-    { row:12, field:'Date of birth', value:'31/02/1970',  msg:'Not a real date' },
-    { row:19, field:'Waiver',        value:'N.O.W.',      msg:'Must be one of: NOW, COMP' },
-    { row:24, field:'Name',          value:'Curtis Nabors', msg:'Looks like a duplicate of row 3' },
-    { row:31, field:'Medicaid ID',   value:'(blank)',     msg:'Required for NOW clients' }
-  ];
+      { row: 3, first: 'Curtis', last: 'Nabors',  dob: '02/09/1954', medicaid: 'GA-10233',
+        waiver: 'COMP', outcome: 'ok', clientId: 'c2' },
 
+      { row: 4, first: 'Adaeze', last: 'Okafor',  dob: '31/02/1970', medicaid: 'GA-10871',
+        waiver: 'NOW',  outcome: 'error',
+        field: 'Date of birth', value: '31/02/1970',
+        why: 'There is no 31st of February' },
+
+      { row: 5, first: 'Curtis', last: 'Nabors',  dob: '02/09/1954', medicaid: 'GA-10233',
+        waiver: 'COMP', outcome: 'duplicate',
+        field: 'Medicaid ID', value: 'GA-10233',
+        why: 'Same person as row 3' }
+    ]
+  };
 
   return {
     agencies: AGENCIES,
@@ -336,6 +343,6 @@ var DEMO = (function () {
     auths: AUTHS, usage: USAGE, incidents: INCIDENTS, hosps: HOSPS,
     qi: QI, isp: ISP, oversight: OVERSIGHT, tasks: TASKS,
     checklist: CHECKLIST, audit: AUDIT,
-    importRows: IMPORT_ROWS, importErrors: IMPORT_ERRORS
+    importFile: IMPORT_FILE
   };
 })();

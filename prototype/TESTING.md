@@ -78,9 +78,10 @@ Sign out. Sign in as Yvonne.
 
 - [ ] **Wrong password.** Type anything else and it is rejected, and it echoes back what you
       typed. Type nothing and you get a different message. Second attempt always gets through.
-- [ ] **Import.** Clients → Import → pick `caseload-april.xlsx`. Four rows fail validation and
-      **nothing is saved** until you approve the preview. The clean file skips straight to the
-      preview.
+- [ ] **Import.** Clients → Import → open `caseload-sample.xlsx`. Four rows, one of each
+      outcome: two import, one cannot be read (31 February), one is a duplicate of row 3.
+      **Nothing is saved** until you approve the preview — and then exactly two clients
+      appear, not four. Import the same file again: it does not duplicate them.
 - [ ] **Nothing dead-ends.** Click anything — buttons, table rows, cards, tabs, filter chips.
       Every one of them goes somewhere.
 - [ ] **The ▦ button** in the black bar lists all 65 screens. Use it to reach anything the

@@ -782,12 +782,30 @@ var APP = (function () {
       toast('ok', 'Reminder timings confirmed', 'Change them any time in Settings.');
     },
 
-    'import.clients': function () {
-      if (DB.all('clients').length) return;
-      DB.addMany('clients', copyDemo(DEMO.clients));
-      DB.setupStep(5); S.vars.setupStep = 5;
-      DB.log(user().name, 'Imported ' + DEMO.clients.length + ' clients', 'Bulk import');
-      toast('ok', DEMO.clients.length + ' clients imported', 'They are saved. Refresh the page and they will still be here.');
+    /* Import only the rows the file check passed. */
+    'import.clients': function (S) {
+      var good = DEMO.importFile.rows.filter(function (r) { return r.outcome === 'ok'; });
+      var already = {};
+      DB.all('clients').forEach(function (c) { already[c.mrn] = true; });
+
+      var toAdd = [];
+      good.forEach(function (r) {
+        var src = DEMO.clients.filter(function (c) { return c.id === r.clientId; })[0];
+        if (!src || already[src.mrn]) return;
+        toAdd.push(JSON.parse(JSON.stringify(src)));
+      });
+
+      if (!toAdd.length) {
+        toast('info', 'Those clients are already here', 'Nothing was imported twice.');
+        return;
+      }
+
+      DB.addMany('clients', remapAgencies(toAdd));
+      if (DB.setupStep() < 5) { DB.setupStep(5); S.vars.setupStep = 5; }
+      DB.log(user().name, 'Imported ' + toAdd.length + ' clients from ' + DEMO.importFile.name,
+        (DEMO.importFile.rows.length - good.length) + ' rows skipped');
+      toast('ok', toAdd.length + ' clients imported',
+        'Saved. Refresh the page and they will still be here.');
     },
     'import.caregivers': function () {
       if (DB.all('caregivers').length) return;
@@ -797,13 +815,22 @@ var APP = (function () {
       DB.log(user().name, 'Imported ' + DEMO.caregivers.length + ' caregivers', 'Bulk import');
       toast('ok', DEMO.caregivers.length + ' caregivers imported', 'With their licences and training dates.');
     },
-    'setup.finish': function () {
-      DB.addMany('auths',     copyDemo(DEMO.auths));
-      DB.addMany('usage',     copyDemo(DEMO.usage));
-      DB.addMany('oversight', copyDemo(DEMO.oversight));
-      DB.addMany('isp',       copyDemo(DEMO.isp));
+    'setup.finish': function (S) {
+      /* Only for clients that were actually imported. */
+      var have = {};
+      DB.all('clients').forEach(function (c) { have[c.id] = true; });
+      function forExisting(list) {
+        return list.filter(function (r) { return !r.client || have[r.client]; });
+      }
+
+      if (!DB.all('auths').length) {
+        DB.addMany('auths',     remapAgencies(forExisting(JSON.parse(JSON.stringify(DEMO.auths)))));
+        DB.addMany('usage',     JSON.parse(JSON.stringify(DEMO.usage)));
+        DB.addMany('oversight', remapAgencies(forExisting(JSON.parse(JSON.stringify(DEMO.oversight)))));
+        DB.addMany('isp',       forExisting(JSON.parse(JSON.stringify(DEMO.isp))));
+      }
       DB.setupStep(7); S.vars.setupStep = 7;
-      DB.log(user().name, 'Added authorisations — setup complete', 'Setup');
+      DB.log(user().name, 'Added ' + DB.all('auths').length + ' authorisations — setup complete', 'Setup');
       toast('ok', 'Setup complete', 'From tomorrow the dashboard starts telling you what needs attention.');
     }
   };

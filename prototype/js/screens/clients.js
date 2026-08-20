@@ -57,31 +57,49 @@
 
   /* ---------------- import ---------------- */
 
+  function outcomeBadge(o) {
+    return o === 'ok'        ? UI.badge('Will import', 'ok')
+         : o === 'duplicate' ? UI.badge('Duplicate — skipped', 'warn')
+         :                     UI.badge('Cannot import', 'bad');
+  }
+
+  function counts() {
+    var rows = DATA.IMPORT_FILE.rows;
+    return {
+      total: rows.length,
+      ok: rows.filter(function (r) { return r.outcome === 'ok'; }).length,
+      dup: rows.filter(function (r) { return r.outcome === 'duplicate'; }).length,
+      bad: rows.filter(function (r) { return r.outcome === 'error'; }).length
+    };
+  }
+
   screen('clients.import', {
     title: 'Import — choose a file', nav: 'clients',
-    crumb: 'Clients <span>›</span> <b>Import</b>',
+    crumb: 'Clients <span>&rsaquo;</span> <b>Import</b>',
     render: function () {
+      var f = DATA.IMPORT_FILE, c = counts();
       return '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt"><h1>Import clients</h1>' +
-        '<span class="sub">Bring in a whole caseload at once from a spreadsheet. Nothing saves until you approve the preview.</span></span></div>' +
+        '<span class="sub">Bring in a whole caseload at once from a spreadsheet. ' +
+        'Nothing is saved until you approve the preview.</span></span></div>' +
 
         '<div class="card"><div class="card-body">' +
-          '<div style="border:2px dashed var(--border-strong);border-radius:11px;padding:34px 24px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center">' +
+          '<div style="border:2px dashed var(--border-strong);border-radius:11px;padding:34px 24px;' +
+          'text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center">' +
             UI.icon('upload', 'ei') +
             '<b>Drop your Excel or CSV file here</b>' +
-            '<span class="small muted">.xlsx and .csv accepted · pick one of the demo files below</span>' +
+            '<span class="small muted">.xlsx and .csv accepted</span>' +
           '</div>' +
 
-          '<div class="grid grid-2" style="gap:10px">' +
-            '<button class="card card--click" data-goto="clients.import.preview" style="padding:16px;text-align:left">' +
-              '<div class="row">' + UI.icon('doc') + '<b class="small">caseload-clean.xlsx</b></div>' +
-              '<span class="small muted" style="display:block;margin-top:5px">38 rows, all valid — goes straight to the preview</span>' +
-            '</button>' +
-            '<button class="card card--click" data-goto="clients.import.errors" style="padding:16px;text-align:left">' +
-              '<div class="row">' + UI.icon('doc') + '<b class="small">caseload-april.xlsx</b></div>' +
-              '<span class="small muted" style="display:block;margin-top:5px">42 rows, 4 with problems — shows the validation</span>' +
-            '</button>' +
-          '</div>' +
+          '<button class="card card--click" data-goto="clients.import.errors" ' +
+            'style="padding:16px;text-align:left">' +
+            '<div class="row">' + UI.icon('doc') + '<b class="small">' + UI.esc(f.name) + '</b>' +
+            '<span class="spacer"></span>' + UI.badge(c.total + ' rows', 'neutral') + '</div>' +
+            '<span class="small muted" style="display:block;margin-top:6px">' +
+              'A sample file with one of everything — ' + c.ok + ' good rows, ' +
+              c.bad + ' that cannot be read and ' + c.dup + ' duplicate. Click to check it.' +
+            '</span>' +
+          '</button>' +
 
           '<div class="row" style="margin-top:2px">' + UI.icon('doc') +
             '<span class="small">Not sure of the format? ' +
@@ -91,7 +109,7 @@
         '<div class="card"><div class="card-head"><h3>Required columns</h3></div><div class="card-body">' +
           '<div class="row small" style="gap:6px">' +
           ['First name','Last name','Date of birth','Medicaid ID','Waiver','Programme','Agreement start','Agreement end','EMR link']
-            .map(function (c) { return '<span class="badge badge--neutral">' + c + '</span>'; }).join('') +
+            .map(function (col) { return '<span class="badge badge--neutral">' + col + '</span>'; }).join('') +
           '</div>' +
         '</div></div>' +
       '</div>';
@@ -99,33 +117,52 @@
   });
 
   screen('clients.import.errors', {
-    title: 'Import — problems found', nav: 'clients',
-    crumb: 'Clients <span>›</span> <b>Import</b>',
+    title: 'Import — checking the file', nav: 'clients',
+    crumb: 'Clients <span>&rsaquo;</span> <b>Import</b>',
     render: function () {
+      var f = DATA.IMPORT_FILE, c = counts();
+
       var h = '<div class="page page--narrow">' +
-        '<div class="page-head"><span class="ph-txt"><h1>We found some problems</h1>' +
-        '<span class="sub">caseload-april.xlsx · 42 rows read</span></span></div>';
+        '<div class="page-head"><span class="ph-txt"><h1>What we found in the file</h1>' +
+        '<span class="sub">' + UI.esc(f.name) + ' · ' + c.total + ' rows read · nothing saved yet</span>' +
+        '</span></div>';
 
-      h += UI.banner('bad', '4 rows cannot be imported',
-        'Fix them in the spreadsheet and upload again, or import the 38 good rows now and add these by hand.');
+      h += '<div class="grid grid-3">' +
+        UI.stat({ k:'Will import',  v:c.ok,  n:'rows are fine',        kind:'ok' }) +
+        UI.stat({ k:'Cannot read',  v:c.bad, n:'fix and upload again', kind:'bad' }) +
+        UI.stat({ k:'Duplicates',   v:c.dup, n:'already in this file', kind:'warn' }) +
+      '</div>';
 
-      h += '<div class="card"><div class="card-head"><h3>Rows that need attention</h3>' +
-        '<span class="spacer"></span>' + UI.badge('4 problems', 'bad') + '</div>' +
-        '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
-        '<th>Row</th><th>Column</th><th>Value found</th><th>Problem</th>' +
+      h += '<div class="card"><div class="card-head"><h3>Every row</h3>' +
+        '<span class="spacer"></span><span class="sub">in file order</span></div>' +
+        '<div class="tbl-wrap"><table class="tbl" style="min-width:820px"><thead><tr>' +
+        '<th>Row</th><th>Name</th><th>Date of birth</th><th>Waiver</th><th>What happens</th><th>Why</th>' +
         '</tr></thead><tbody>';
 
-      DATA.IMPORT_ERRORS.forEach(function (e) {
-        h += '<tr data-row><td class="num mono">' + e.row + '</td>' +
-          '<td class="nm">' + UI.esc(e.field) + '</td>' +
-          '<td class="mono small">' + UI.esc(e.value) + '</td>' +
-          '<td><span style="color:var(--r-600);font-weight:600">' + UI.esc(e.msg) + '</span></td></tr>';
+      f.rows.forEach(function (r) {
+        var bad = r.outcome !== 'ok';
+        h += '<tr data-row' + (bad ? ' style="background:var(--n-25)"' : '') + '>' +
+          '<td class="num mono">' + r.row + '</td>' +
+          '<td class="nm">' + UI.esc(r.first + ' ' + r.last) + '</td>' +
+          '<td class="num small' + (r.field === 'Date of birth' ? '' : '') + '">' +
+            (r.field === 'Date of birth'
+              ? '<span style="color:var(--r-600);font-weight:650">' + UI.esc(r.dob) + '</span>'
+              : UI.esc(r.dob)) + '</td>' +
+          '<td>' + UI.badge(r.waiver, 'plum') + '</td>' +
+          '<td>' + outcomeBadge(r.outcome) + '</td>' +
+          '<td class="small muted">' + UI.esc(r.why || '—') + '</td>' +
+        '</tr>';
       });
 
       h += '</tbody></table></div>' +
-        '<div class="card-foot">' + UI.btn('Upload a corrected file', { goto: 'clients.import' }) +
+        '<div class="card-foot">' + UI.btn('Upload a different file', { goto: 'clients.import' }) +
         '<span class="spacer"></span>' +
-        UI.btn('Continue with the 38 good rows', { cls: 'btn--primary', goto: 'clients.import.preview' }) + '</div></div>';
+        UI.btn('Continue with the ' + c.ok + ' good rows', { cls: 'btn--primary', goto: 'clients.import.preview' }) +
+        '</div></div>';
+
+      h += UI.banner('info', 'The two skipped rows are not lost',
+        'Fix them in the spreadsheet and upload again, or add those two clients by hand afterwards. ' +
+        'Nothing has been written yet either way.');
 
       return h + '</div>';
     }
@@ -133,36 +170,46 @@
 
   screen('clients.import.preview', {
     title: 'Import — preview', nav: 'clients',
-    crumb: 'Clients <span>›</span> <b>Import</b>',
+    crumb: 'Clients <span>&rsaquo;</span> <b>Import</b>',
     render: function () {
+      var f = DATA.IMPORT_FILE, c = counts();
+      var good = f.rows.filter(function (r) { return r.outcome === 'ok'; });
+
       var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt"><h1>Check before saving</h1>' +
-        '<span class="sub">Nothing has been written to the system yet.</span></span></div>';
+        '<span class="sub">This is the last point at which nothing has been written.</span>' +
+        '</span></div>';
 
-      h += '<div class="grid grid-3">' +
-        UI.stat({ k: 'Will be created', v: '38', n: 'new clients',        kind: 'ok' }) +
-        UI.stat({ k: 'Skipped',         v: '4',  n: 'rows with problems',  kind: 'bad' }) +
-        UI.stat({ k: 'Possible duplicates', v: '1', n: 'flagged for review', kind: 'warn' }) +
-      '</div>';
-
-      h += '<div class="card"><div class="card-head"><h3>First rows</h3>' +
-        '<span class="spacer"></span><span class="sub">showing 5 of 38</span></div>' +
+      h += '<div class="card"><div class="card-head"><h3>About to be created</h3>' +
+        '<span class="spacer"></span>' + UI.badge(c.ok + ' clients', 'ok') + '</div>' +
         '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
-        '<th>Row</th><th>Name</th><th>Date of birth</th><th>Waiver</th><th></th>' +
+        '<th>Row</th><th>Name</th><th>Date of birth</th><th>Medicaid ID</th><th>Waiver</th>' +
         '</tr></thead><tbody>';
 
-      DATA.IMPORT_ROWS.forEach(function (r) {
+      good.forEach(function (r) {
         h += '<tr data-row><td class="num mono">' + r.row + '</td>' +
-          '<td class="nm">' + UI.esc(r.name) + '</td>' +
-          '<td class="num">' + UI.esc(r.dob) + '</td>' +
-          '<td>' + UI.badge(r.waiver, 'plum') + '</td>' +
-          '<td>' + UI.badge('Ready', 'ok') + '</td></tr>';
+          '<td class="nm">' + UI.esc(r.first + ' ' + r.last) + '</td>' +
+          '<td class="num small">' + UI.esc(r.dob) + '</td>' +
+          '<td class="mono small">' + UI.esc(r.medicaid) + '</td>' +
+          '<td>' + UI.badge(r.waiver, 'plum') + '</td></tr>';
       });
 
       h += '</tbody></table></div><div class="card-foot">' +
         UI.btn('Back', { goto: 'clients.import.errors' }) + '<span class="spacer"></span>' +
-        '<button class="btn btn--primary" data-do="import.clients" data-goto="clients.import.done">' + UI.icon('check') + 'Import these clients</button>' +
-      '</div></div>';
+        '<button class="btn btn--primary" data-do="import.clients" data-goto="clients.import.done">' +
+          UI.icon('check') + 'Import these ' + c.ok + ' clients</button>' +
+        '</div></div>';
+
+      h += '<div class="card"><div class="card-head"><h3>Being left out</h3>' +
+        '<span class="spacer"></span>' + UI.badge((c.bad + c.dup) + ' rows', 'warn') + '</div>' +
+        '<div class="clist">' +
+        f.rows.filter(function (r) { return r.outcome !== 'ok'; }).map(function (r) {
+          return '<div class="clist-row" style="cursor:default">' + outcomeBadge(r.outcome) +
+            '<span style="display:flex;flex-direction:column;min-width:0">' +
+            '<span class="cl-n">Row ' + r.row + ' · ' + UI.esc(r.first + ' ' + r.last) + '</span>' +
+            '<span class="cl-s">' + UI.esc(r.field) + ': ' + UI.esc(r.value) + ' — ' + UI.esc(r.why) + '</span>' +
+            '</span></div>';
+        }).join('') + '</div></div>';
 
       return h + '</div>';
     }
@@ -170,20 +217,37 @@
 
   screen('clients.import.done', {
     title: 'Import — done', nav: 'clients',
-    crumb: 'Clients <span>›</span> <b>Import</b>',
-    render: function () {
+    crumb: 'Clients <span>&rsaquo;</span> <b>Import</b>',
+    render: function (S) {
+      var c = counts();
+      var made = DATA.CLIENTS.length;
+
       return '<div class="page page--narrow">' +
-        '<div class="card"><div class="card-body" style="align-items:center;text-align:center;padding:48px 24px;gap:14px">' +
+        '<div class="card"><div class="card-body" style="align-items:center;text-align:center;padding:44px 24px;gap:14px">' +
         '<span style="width:56px;height:56px;border-radius:50%;background:var(--gr-50);color:var(--gr-500);display:grid;place-items:center">' +
         UI.icon('check', 'ei') + '</span>' +
-        '<h1 style="margin:0;font-size:24px;font-weight:650">38 clients imported</h1>' +
-        '<p class="muted" style="max-width:46ch">Each one now has an empty waiver checklist and no authorisations yet. ' +
-        'The dashboard will start flagging anything missing from tomorrow.</p>' +
+        '<h1 style="margin:0;font-size:24px;font-weight:650">' + c.ok + ' clients imported</h1>' +
+        '<p class="muted" style="max-width:46ch">' +
+          (c.bad + c.dup) + ' rows were left out — ' + c.bad + ' that could not be read and ' +
+          c.dup + ' duplicate. Fix those in the spreadsheet and upload again, or add them by hand.' +
+        '</p>' +
         '<div class="row" style="justify-content:center;margin-top:6px">' +
           UI.btn('See the client list', { cls: 'btn--primary', goto: 'clients.list' }) +
-          UI.btn('Add authorisations', { goto: 'budget.setup' }) +
+          UI.btn('Import another file', { goto: 'clients.import' }) +
         '</div>' +
-        '</div></div></div>';
+        '</div></div>' +
+
+        '<div class="card"><div class="card-head"><h3>What each one has now</h3></div>' +
+        '<div class="card-body"><div class="tl">' +
+          UI.tlItem('ok', 'A management record', 'name, waiver, programme and a link out to the EMR') +
+          UI.tlItem('now', 'An empty waiver checklist', 'every required document showing as missing until it is filed') +
+          UI.tlItem('', 'No authorisation yet', 'add one and the budget tracking starts') +
+          UI.tlItem('', 'Nothing overdue yet', 'the dashboard stays quiet until dates exist') +
+        '</div>' +
+        '<span class="small muted">' + made + ' client' + (made === 1 ? '' : 's') +
+        ' in the system now. Refresh the page — they are still there.</span>' +
+        '</div></div>' +
+      '</div>';
     }
   });
 

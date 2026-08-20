@@ -94,9 +94,8 @@ var DATA = (function () {
     return DB.all('clients').length ? DEMO.checklist : [];
   } });
 
-  /* Import fixtures are demo material, not stored records. */
-  Object.defineProperty(API, 'IMPORT_ROWS',   { get: function () { return DEMO.importRows; } });
-  Object.defineProperty(API, 'IMPORT_ERRORS', { get: function () { return DEMO.importErrors; } });
+  /* The sample spreadsheet is demo material, not a stored record. */
+  Object.defineProperty(API, 'IMPORT_FILE', { get: function () { return DEMO.importFile; } });
 
   /* Emptiness is a real state now, not a toggle. */
   API.isEmpty  = function () { return DB.isFresh(); };
