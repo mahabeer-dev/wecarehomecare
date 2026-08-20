@@ -75,7 +75,7 @@
         '<span class="sub">Work down the list. Each one unlocks the next.</span>' +
         '</span></div>';
 
-      h += '<div class="card"><div class="card-body">' + UI.meter(pc, pc === 100 ? '' : '') +
+      h += '<div class="card"><div class="card-body">' + UI.progress(pc) +
         '<span class="small muted">' + (d === STEPS.length
           ? 'All done — the system is watching your dates now.'
           : STEPS.length - d + ' steps left. Roughly ' + ((STEPS.length - d) * 8) + ' minutes.') +

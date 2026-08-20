@@ -92,6 +92,14 @@ var UI = (function () {
     '</div>';
   }
 
+  /* A plain bar. The budget meter has 75/90/100 marks on it, which mean
+     nothing outside a budget. */
+  function progress(pc) {
+    return '<div class="meter"><div class="meter-track">' +
+      '<div class="meter-fill" style="width:' + Math.max(0, Math.min(100, pc)) + '%"></div>' +
+      '</div></div>';
+  }
+
   function banner(kind, title, body, actions) {
     return '<div class="banner banner--' + kind + '">' +
       icon(kind === 'ok' ? 'check' : kind === 'info' ? 'bell' : 'warn', 'bi') +
@@ -205,7 +213,7 @@ var UI = (function () {
 
   return {
     icon: icon, esc: esc, initials: initials, badge: badge, stat: stat, meter: meter,
-    banner: banner, btn: btn, field: field, kv: kv, tlItem: tlItem, bars: bars,
+    banner: banner, btn: btn, progress: progress, field: field, kv: kv, tlItem: tlItem, bars: bars,
     empty: empty, emrLink: emrLink, emptyModule: emptyModule, noRecord: noRecord
   };
 })();

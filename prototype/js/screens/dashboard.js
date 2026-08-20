@@ -51,16 +51,11 @@
       '<span class="sub">Nothing to report yet. The system can only warn you about dates it knows about.</span>' +
       '</span></div>';
 
-    h += '<div class="grid grid-4">' +
-      UI.stat({ k:'Overdue tasks',  v:'0', n:'no tasks yet' }) +
-      UI.stat({ k:'Budget alerts',  v:'0', n:'no authorisations yet' }) +
-      UI.stat({ k:'Open incidents', v:'0', n:'nothing recorded' }) +
-      UI.stat({ k:'Reviews due',    v:'0', n:'no clients yet' }) +
-    '</div>';
-
+    /* No counters while there is nothing to count. The list is the dashboard. */
     h += '<div class="card"><div class="card-head"><h3>Finish setting up</h3>' +
       '<span class="spacer"></span><span class="sub">' + d + ' of ' + SETUP.length + ' done</span></div>' +
-      '<div class="card-body" style="padding-bottom:6px">' + UI.meter(Math.round((d / SETUP.length) * 100)) + '</div>' +
+      '<div class="card-body" style="padding-bottom:10px">' +
+        UI.progress(Math.round((d / SETUP.length) * 100)) + '</div>' +
       '<div class="clist">';
 
     SETUP.forEach(function (st, i) {
