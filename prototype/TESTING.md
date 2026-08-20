@@ -114,6 +114,9 @@ history. It answers the question "what does Dawn actually do first?"
       1. Name your agencies
       2. Invite your team
       3. Add your waiver programmes  ← the one only Dawn can do
+         NOW ships as a worked example. Add COMP as a *copy* of it — one click
+         instead of retyping nine documents — then add a Mississippi programme
+         from scratch and type its documents in.
       4. Check the reminder timings
       5. Import your clients
       6. Import your caregivers
