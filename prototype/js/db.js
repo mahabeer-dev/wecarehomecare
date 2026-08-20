@@ -17,8 +17,15 @@
 var DB = (function () {
 
   var KEY = 'wechc.prototype.v1';
+
+  /* Bump this whenever the shape of the data changes. A stored copy from an
+     older build is discarded rather than merged, because a half-old, half-new
+     store looks like working data and is not. */
+  var SCHEMA = 3;
+
   var state = null;
   var storageWorks = true;
+  var wasReset = false;
 
   /* ---------------- storage ---------------- */
 
@@ -45,16 +52,29 @@ var DB = (function () {
 
   /* ---------------- lifecycle ---------------- */
 
-  function fresh() { return clone(SEED); }
+  function fresh() {
+    var f = clone(SEED);
+    f.schema = SCHEMA;
+    return f;
+  }
 
   function boot() {
-    state = readStore() || fresh();
-    /* a stored copy from an older build may be missing newer collections */
+    var stored = readStore();
+    if (stored && stored.schema !== SCHEMA) {
+      stored = null;
+      wasReset = true;
+    }
+    state = stored || fresh();
+    /* fill in anything a newer build added */
     var blank = fresh();
     for (var k in blank) if (!(k in state)) state[k] = blank[k];
+    state.schema = SCHEMA;
     writeStore();
     return state;
   }
+
+  /* True when boot() threw away an incompatible store. */
+  function wasResetOnBoot() { return wasReset; }
 
   function startAgain() {
     state = fresh();
@@ -222,6 +242,7 @@ var DB = (function () {
     all: all, get: get, add: add, addMany: addMany, update: update, remove: remove,
     setCollection: setCollection,
     settings: settings, setSetting: setSetting, setupStep: setupStep,
+    wasResetOnBoot: wasResetOnBoot,
     log: log, stamp: stamp, persists: persists, stats: stats
   };
 })();

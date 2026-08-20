@@ -792,11 +792,17 @@ var APP = (function () {
     'import.clients': function (S) {
       var good = DEMO.importFile.rows.filter(function (r) { return r.outcome === 'ok'; });
       var already = {};
-      DB.all('clients').forEach(function (c) { already[c.mrn] = true; });
+      DB.all('clients').forEach(function (c) {
+        if (c.mrn) already[c.mrn] = true;
+        already[(c.name || '').toLowerCase()] = true;
+      });
 
       var toAdd = [];
       good.forEach(function (r) {
-        if (already[r.medicaid]) return;
+        var name = (r.first + ' ' + r.last).toLowerCase();
+        if (already[r.medicaid] || already[name]) return;
+        already[r.medicaid] = true;
+        already[name] = true;
         toAdd.push({
           id: 'c-' + r.medicaid.toLowerCase().replace(/[^a-z0-9]/g, ''),
           agency: S.agency || (DB.all('agencies')[0] || {}).id || null,
@@ -880,11 +886,17 @@ var APP = (function () {
     'import.caregivers': function (S) {
       var good = DEMO.caregiverFile.rows.filter(function (r) { return r.outcome === 'ok'; });
       var already = {};
-      DB.all('caregivers').forEach(function (g) { already[(g.email || '').toLowerCase()] = true; });
+      DB.all('caregivers').forEach(function (g) {
+        if (g.email) already[g.email.toLowerCase()] = true;
+        already[(g.name || '').toLowerCase()] = true;   /* a record may predate emails */
+      });
 
       var toAdd = [];
       good.forEach(function (r) {
-        if (already[r.email.toLowerCase()]) return;
+        var name = (r.first + ' ' + r.last).toLowerCase();
+        if (already[r.email.toLowerCase()] || already[name]) return;
+        already[r.email.toLowerCase()] = true;
+        already[name] = true;
         toAdd.push({
           id: 'g-' + r.email.split('@')[0].replace(/[^a-z0-9]/g, ''),
           agency: null,
@@ -1132,6 +1144,13 @@ var APP = (function () {
   function boot() {
     DB.boot();
     S.vars.setupStep = DB.setupStep();
+    if (DB.wasResetOnBoot()) {
+      setTimeout(function () {
+        toast('info', 'Started fresh',
+          'The prototype changed shape since you last opened it, so the old data was cleared ' +
+          'rather than half-migrated.');
+      }, 400);
+    }
     document.addEventListener('click', onClick);
     document.addEventListener('change', function (e) {
       if (e.target.id === 'c-flow') {
