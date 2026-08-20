@@ -117,7 +117,9 @@ history. It answers the question "what does Dawn actually do first?"
          NOW ships as a worked example. Add COMP as a *copy* of it — one click
          instead of retyping nine documents — then add a Mississippi programme
          from scratch and type its documents in.
-      4. Check the reminder timings
+      4. Check the reminder timings — try editing one, toggling its email off,
+         adding a rule of your own, and deleting it again. Then refresh: your
+         changes are still there.
       5. Import your clients
       6. Import your caregivers
       7. Add authorisations

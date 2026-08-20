@@ -522,6 +522,27 @@ var APP = (function () {
 
   function copyDemo(list) { return remapAgencies(JSON.parse(JSON.stringify(list))); }
 
+  /* Reads the reminder form, or returns null and complains. */
+  function readRule() {
+    function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+    var what = val('r-what');
+    if (!what) { toast('bad', 'Say what it watches', 'For example: background checks.'); return null; }
+
+    var advance = val('r-advance').split(',')
+      .map(function (n) { return parseInt(String(n).trim(), 10); })
+      .filter(function (n) { return !isNaN(n) && n >= 0; })
+      .sort(function (a, b) { return b - a; });
+
+    var esc = parseInt(val('r-escalate'), 10);
+    return {
+      what: what,
+      advance: advance,
+      overdue: val('r-overdue') || 'Immediately',
+      escalate: isNaN(esc) ? 7 : esc,
+      email: val('r-email') !== 'no'
+    };
+  }
+
   var ACTIONS = {
     /* Add one agency from what was typed into the form. */
     'agency.add': function (S) {
@@ -712,10 +733,55 @@ var APP = (function () {
         'The system now knows which documents each one requires.');
     },
 
-    'setup.reminders': function () {
+    'rem.edit':   function (S, el) { S.vars.remId = el.getAttribute('data-id'); return 'stay'; },
+    'rem.cancel': function (S)     { S.vars.remId = null; return 'stay'; },
+
+    'rem.email': function (S, el) {
+      var r = DB.get('reminders', el.getAttribute('data-id'));
+      if (!r) return 'stay';
+      DB.update('reminders', r.id, { email: !r.email });
+      DB.log(user().name, (r.email ? 'Turned off' : 'Turned on') + ' email for "' + r.what + '"', 'Settings');
+      return 'stay';
+    },
+
+    /* Read the form. Shared by add and save. */
+    'rem.add': function (S) {
+      var f = readRule();
+      if (!f) return 'stay';
+      if (DB.all('reminders').some(function (r) { return r.what.toLowerCase() === f.what.toLowerCase(); })) {
+        toast('bad', 'There is already a rule for that', 'Edit the existing one instead.');
+        return 'stay';
+      }
+      DB.add('reminders', f);
+      DB.log(user().name, 'Added reminder rule for "' + f.what + '"', 'Settings');
+      toast('ok', 'Rule added', 'It runs from tonight.');
+      return 'stay';
+    },
+
+    'rem.save': function (S, el) {
+      var f = readRule();
+      if (!f) return 'stay';
+      DB.update('reminders', el.getAttribute('data-id'), f);
+      S.vars.remId = null;
+      DB.log(user().name, 'Changed the reminder rule for "' + f.what + '"', 'Settings');
+      toast('ok', 'Saved', 'Takes effect on the next nightly run.');
+      return 'stay';
+    },
+
+    'rem.remove': function (S, el) {
+      var r = DB.get('reminders', el.getAttribute('data-id'));
+      DB.remove('reminders', el.getAttribute('data-id'));
+      if (S.vars.remId === (r && r.id)) S.vars.remId = null;
+      DB.log(user().name, 'Deleted the reminder rule for "' + ((r && r.what) || '?') + '"', 'Settings');
+      toast('warn', 'Rule deleted', 'Nothing will be chased for that any more.');
+      return 'stay';
+    },
+
+    'setup.reminders': function (S) {
       if (DB.setupStep() < 4) { DB.setupStep(4); S.vars.setupStep = 4; }
       toast('ok', 'Reminder timings confirmed', 'Change them any time in Settings.');
     },
+
     'import.clients': function () {
       if (DB.all('clients').length) return;
       DB.addMany('clients', copyDemo(DEMO.clients));

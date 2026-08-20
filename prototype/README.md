@@ -84,7 +84,8 @@ before it:
 3. **Add your waiver programmes** — NOW ships as a worked example so the shape is
    obvious; you add COMP and the rest yourself, either from scratch or as a copy of an
    existing one, then edit the document list
-4. **Check the reminder timings** — defaults ship with the product
+4. **Check the reminder timings** — eight rules ship as defaults, and every one can be
+   edited, switched off or deleted; add your own for anything else you want chased
 5. **Import your clients** — from a spreadsheet
 6. **Import your caregivers** — with their licences
 7. **Add authorisations** — and only now does budget tracking begin

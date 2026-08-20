@@ -69,17 +69,21 @@ var SEED = {
   tasks:       [],
   audit:       [],
 
+  /* Reminder rules ship with sensible defaults. Every one of them can be
+     changed, added to or deleted by the client — no developer needed. */
+  reminders: [
+    { id:'r-cred',  what:'Caregiver credentials', advance:[60,30,14,7], overdue:'Immediately',   escalate:14, email:true },
+    { id:'r-agree', what:'Service agreements',    advance:[90,60,30],   overdue:'Immediately',   escalate:7,  email:true },
+    { id:'r-auth',  what:'Prior authorisations',  advance:[60,30,14],   overdue:'Immediately',   escalate:7,  email:true },
+    { id:'r-sup',   what:'Supervisor visits',     advance:[14,7],       overdue:'Immediately',   escalate:7,  email:true },
+    { id:'r-hrst',  what:'HRST annual review',    advance:[60,30],      overdue:'Immediately',   escalate:14, email:true },
+    { id:'r-plan',  what:'Plan reviews',          advance:[30,14],      overdue:'Immediately',   escalate:14, email:false },
+    { id:'r-isp',   what:'Monthly ISP entries',   advance:[5],          overdue:'On the 7th',    escalate:7,  email:true },
+    { id:'r-task',  what:'Tasks',                 advance:[7],          overdue:'Immediately',   escalate:7,  email:true }
+  ],
+
   /* Defaults that ship with the product. Changeable in Settings. */
   settings: {
-    reminders: {
-      credentials:  [60, 30, 14, 7],
-      agreements:   [90, 60, 30],
-      authorisations: [60, 30, 14],
-      supervisorVisits: [14, 7],
-      hrst:         [60, 30],
-      plans:        [30, 14],
-      tasks:        [7]
-    },
     thresholds: {
       qiFromIncidents: 2,
       qiFromHospitalStays: 2,

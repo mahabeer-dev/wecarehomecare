@@ -111,39 +111,95 @@
 
   screen('set.reminders', {
     title: 'Reminder timings', nav: 'settings',
-    crumb: '<b>Settings</b> <span>›</span> Reminders',
-    render: function () {
-      var h = '<div class="page">' + head('Reminder timings', 'How far ahead the system warns you, per record type') + tabs('Reminders');
+    crumb: '<b>Settings</b> <span>&rsaquo;</span> Reminders',
+    render: function (S) {
+      var rules = DB.all('reminders');
+      var editing = DB.get('reminders', S.vars.remId) || null;
 
-      h += '<div class="card"><div class="tbl-wrap"><table class="tbl" style="min-width:840px"><thead><tr>' +
-        '<th>What</th><th>Advance reminders</th><th>Overdue alert</th><th>Escalates after</th><th>Email</th>' +
-        '</tr></thead><tbody>' +
-        rem('Caregiver credentials', '60, 30, 14, 7 days', 'Immediately', '14 days', true) +
-        rem('Service agreements', '90, 60, 30 days', 'Immediately', '7 days', true) +
-        rem('Prior authorisations', '60, 30, 14 days', 'Immediately', '7 days', true) +
-        rem('Supervisor visits', '14, 7 days', 'Immediately', '7 days', true) +
-        rem('HRST annual review', '60, 30 days', 'Immediately', '14 days', true) +
-        rem('Plan reviews', '30, 14 days', 'Immediately', '14 days', false) +
-        rem('Monthly ISP entries', '5 days before month end', 'On the 7th', '7 days', true) +
-        rem('Tasks', '7 days', 'Immediately', '7 days', true) +
-        '</tbody></table></div>' +
-        '<div class="card-foot"><span class="small muted">Changing these takes effect on the next nightly run. No developer needed.</span>' +
+      var h = '<div class="page">' +
+        head('Reminder timings', 'How far ahead the system warns you, and what happens when nobody acts') +
+        tabs('Reminders');
+
+      h += '<div class="card"><div class="card-head"><h3>Rules</h3>' +
+        '<span class="spacer"></span><span class="sub">' + rules.length +
+        ' rule' + (rules.length === 1 ? '' : 's') + '</span></div>';
+
+      if (rules.length) {
+        h += '<div class="tbl-wrap"><table class="tbl" style="min-width:900px"><thead><tr>' +
+          '<th>What</th><th>Advance reminders</th><th>Overdue alert</th><th>Escalates after</th>' +
+          '<th>Email</th><th></th></tr></thead><tbody>';
+        rules.forEach(function (r) {
+          var on = editing && r.id === editing.id;
+          h += '<tr data-row' + (on ? ' style="background:var(--p-50)"' : '') + '>' +
+            '<td class="nm">' + UI.esc(r.what) + '</td>' +
+            '<td class="small mono">' + UI.esc((r.advance || []).join(', ')) +
+              ((r.advance || []).length ? ' days before' : '—') + '</td>' +
+            '<td class="small">' + UI.esc(r.overdue) + '</td>' +
+            '<td class="small">' + UI.esc(r.escalate) + ' days</td>' +
+            '<td><button class="btn btn--sm btn--ghost" data-do="rem.email" data-id="' + UI.esc(r.id) + '" ' +
+              'style="padding:0">' + UI.badge(r.email ? 'On' : 'Off', r.email ? 'ok' : 'neutral') + '</button></td>' +
+            '<td class="right nowrap">' +
+              '<button class="btn btn--sm btn--ghost" data-do="rem.edit" data-id="' + UI.esc(r.id) + '">' +
+                (on ? 'Editing' : 'Edit') + '</button>' +
+              '<button class="btn btn--sm btn--ghost" data-do="rem.remove" data-id="' + UI.esc(r.id) + '">Remove</button>' +
+            '</td></tr>';
+        });
+        h += '</tbody></table></div>';
+      } else {
+        h += '<div class="card-body"><div class="empty" style="padding:28px 18px">' +
+          UI.icon('clock', 'ei') + '<b>No reminder rules</b>' +
+          '<span>Without these the system will not warn you about anything. Add at least one.</span>' +
+          '</div></div>';
+      }
+      h += '</div>';
+
+      /* add or edit */
+      h += '<div class="card"><div class="card-head"><h3>' +
+        (editing ? 'Edit &ldquo;' + UI.esc(editing.what) + '&rdquo;' : 'Add a rule') + '</h3>' +
         '<span class="spacer"></span>' +
-        (DB.setupStep() < 7
-          ? '<button class="btn btn--primary" data-do="setup.reminders" data-goto="setup.dash">' +
-            UI.icon('arrow') + 'These are fine — continue</button>'
-          : '') +
-        '</div></div>';
+        (editing ? '<button class="btn btn--sm btn--ghost" data-do="rem.cancel">Cancel</button>' : '') +
+        '</div><div class="card-body"><div class="form-grid">' +
+          UI.field('What it watches', { id:'r-what', span:true,
+            value: editing ? editing.what : '', placeholder:'Background checks' }) +
+          UI.field('Warn this many days ahead', { id:'r-advance',
+            value: editing ? (editing.advance || []).join(', ') : '',
+            placeholder:'60, 30, 14, 7',
+            hint:'Comma separated. One reminder goes out on each of those days.' }) +
+          UI.field('When it goes overdue', { id:'r-overdue', type:'select',
+            value: editing ? editing.overdue : 'Immediately',
+            options:[{ value:'Immediately', label:'Immediately' },
+                     { value:'Next morning', label:'Next morning' },
+                     { value:'On the 7th', label:'On the 7th of the month' },
+                     { value:'Never', label:'Do not alert' }] }) +
+          UI.field('Escalate to a manager after', { id:'r-escalate',
+            value: editing ? editing.escalate : '7', hint:'Days with nobody acting on it' }) +
+          UI.field('Send an email as well', { id:'r-email', type:'select',
+            value: editing ? (editing.email ? 'yes' : 'no') : 'yes',
+            options:[{ value:'yes', label:'Yes — email whoever owns it' },
+                     { value:'no',  label:'No — dashboard only' }],
+            hint:'Emails never contain any client detail' }) +
+        '</div>' +
+        '<div class="row"><span class="spacer"></span>' +
+          (editing
+            ? '<button class="btn btn--primary" data-do="rem.save" data-id="' + UI.esc(editing.id) + '">' +
+              UI.icon('check') + 'Save changes</button>'
+            : '<button class="btn btn--primary" data-do="rem.add">' + UI.icon('plus') + 'Add this rule</button>') +
+        '</div></div></div>';
+
+      h += UI.banner('info', 'Changing these needs no developer',
+        'They take effect on the next nightly run. This is the screen that decides how noisy ' +
+        'or how quiet the system is, so it belongs to you rather than to us.');
+
+      if (DB.setupStep() < 7) {
+        h += '<div class="card"><div class="card-foot">' +
+          UI.btn('Back', { goto: 'setup.programmes' }) + '<span class="spacer"></span>' +
+          '<button class="btn btn--primary" data-do="setup.reminders" data-goto="dash.home">' +
+          UI.icon('arrow') + 'These are fine — continue</button></div></div>';
+      }
 
       return h + '</div>';
     }
   });
-
-  function rem(what, adv, od, esc, email) {
-    return '<tr data-row><td class="nm">' + what + '</td><td class="small mono">' + adv + '</td>' +
-      '<td class="small">' + od + '</td><td class="small">' + esc + '</td>' +
-      '<td>' + (email ? UI.badge('On', 'ok') : UI.badge('Off', 'neutral')) + '</td></tr>';
-  }
 
   screen('set.thresholds', {
     title: 'Automatic rules', nav: 'settings',
