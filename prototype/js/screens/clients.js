@@ -527,14 +527,59 @@
       var pw = DATA.paperwork(c.id);
       var h = '<div class="page">' + profileHead(c) + tabs('Waiver documents');
 
+      if (!docs.length) {
+        h += UI.emptyModule({ icon:'doc', title:'No programme yet',
+          body:'The required documents come from the waiver programme. Put ' +
+               UI.esc(c.name.split(' ')[0]) + ' on one and the list appears here, ' +
+               'with every outstanding document showing on the dashboard until it is filed.',
+          actions:[{ label:'Choose a programme', primary:true, goto:'clients.programme' }] });
+        return h + '</div>';
+      }
+
       h += pw.complete
         ? UI.banner('ok', 'Everything required is on file',
             'Nothing about this paperwork is showing on the dashboard.')
         : UI.banner(pw.expired ? 'bad' : 'warn',
             pw.onFile + ' of ' + pw.total + ' required documents on file',
             (pw.missing ? pw.missing + ' still to collect. ' : '') +
-            (pw.expired ? pw.expired + ' has expired and needs renewing. ' : '') +
-            'This client keeps appearing on the dashboard until that is resolved.');
+            (pw.expired ? pw.expired + ' expired and needs renewing. ' : '') +
+            'Each one has its own line on the dashboard until it is dealt with.');
+
+      /* the row being filed */
+      var filing = DB.get('clientDocs', S.vars.docId);
+      if (filing && filing.client !== c.id) filing = null;
+
+      if (filing) {
+        var was = DATA.docState(filing);
+        h += '<div class="card"><div class="card-head"><h3>' + UI.esc(filing.name) + '</h3>' +
+          '<span class="spacer"></span>' + UI.badge(was, was === 'On file' ? 'ok' : was === 'Expired' ? 'bad' : 'warn') +
+          '</div><div class="card-body"><div class="form-grid">' +
+          UI.field('Received on', { id:'dc-got', type:'date',
+            value: filing.received !== '\u2014' ? filing.received : '' }) +
+          (filing.renews
+            ? UI.field('Expires on', { id:'dc-exp', type:'date',
+                value: filing.expires !== '\u2014' ? filing.expires : '',
+                hint: filing.period && filing.period !== '\u2014'
+                  ? 'This one renews every ' + UI.esc(filing.period)
+                  : 'Leave blank if it does not run out' })
+            : '<div class="field"><label>Expires on</label>' +
+              '<div class="select" data-inert>Does not expire</div>' +
+              '<span class="hint">This document is filed once and stays valid</span></div>') +
+          '</div>' +
+          UI.banner('info', 'The file itself would be attached here',
+            'In the built system this is where the scan or PDF is uploaded. The prototype records ' +
+            'the dates, because the dates are what the system watches.') +
+          '</div>' +
+          '<div class="card-foot">' +
+          '<button class="btn" data-do="doc.cancel">Cancel</button>' +
+          (was !== 'Missing'
+            ? '<button class="btn btn--ghost" data-do="doc.unfile">' + UI.icon('x') + 'Take it back off file</button>'
+            : '') +
+          '<span class="spacer"></span>' +
+          '<button class="btn btn--primary" data-do="doc.save">' + UI.icon('check') +
+          (was === 'Expired' ? 'Record the renewal' : 'Mark as on file') + '</button>' +
+          '</div></div>';
+      }
 
       h += '<div class="card"><div class="card-head"><h3>' + UI.esc(c.waiver) + ' — required documents</h3>' +
         '<span class="spacer"></span>' + UI.btn('Edit this checklist', { cls: 'btn--sm', goto: 'set.checklist' }) + '</div>' +
@@ -543,13 +588,18 @@
         '</tr></thead><tbody>';
 
       docs.forEach(function (d) {
-        h += '<tr data-row><td class="nm">' + UI.esc(d.name) + '</td>' +
+        var st = DATA.docState(d);
+        var on = filing && filing.id === d.id;
+        h += '<tr data-row' + (on ? ' style="background:var(--n-25)"' : '') + '>' +
+          '<td class="nm">' + UI.esc(d.name) +
+            (d.required === false ? ' <span class="sub2">optional</span>' : '') + '</td>' +
           '<td class="num small">' + UI.esc(d.received) + '</td>' +
           '<td class="num small">' + UI.esc(d.expires) + '</td>' +
-          '<td>' + UI.badge(d.status) + '</td>' +
-          '<td class="right">' + (d.status === 'On file'
-            ? '<span class="linkish small">View</span>'
-            : '<span class="linkish small">Upload</span>') + '</td></tr>';
+          '<td>' + UI.badge(st, st === 'On file' ? 'ok' : st === 'Expired' ? 'bad' : 'warn') + '</td>' +
+          '<td class="right">' +
+            '<button class="btn btn--sm btn--ghost" data-do="doc.file" data-id="' + UI.esc(d.id) + '">' +
+            (st === 'Missing' ? 'Upload' : st === 'Expired' ? 'Renew' : 'View') + '</button>' +
+          '</td></tr>';
       });
 
       h += '</tbody></table></div>' +

@@ -120,12 +120,22 @@ var DATA = (function () {
     return DB.all('clientDocs').filter(function (d) { return d.client === clientId; });
   }
 
+  /* Whether a document is on file follows from whether it was received and
+     whether it has run out — it is not a word typed onto the record. */
+  function docState(d) {
+    if (!d.received || d.received === '\u2014') return 'Missing';
+    if (d.renews && d.expires && d.expires !== '\u2014' &&
+        UI.toISO(d.expires) && UI.toISO(d.expires) < todayISO()) return 'Expired';
+    return 'On file';
+  }
+
   function paperwork(clientId) {
     var docs = docsFor(clientId);
     var required = docs.filter(function (d) { return d.required !== false; });
-    var onFile   = required.filter(function (d) { return d.status === 'On file'; }).length;
-    var missing  = required.filter(function (d) { return d.status === 'Missing'; }).length;
-    var expired  = required.filter(function (d) { return d.status === 'Expired'; }).length;
+    function count(st) { return required.filter(function (d) { return docState(d) === st; }).length; }
+    var onFile   = count('On file');
+    var missing  = count('Missing');
+    var expired  = count('Expired');
     return {
       total: required.length, onFile: onFile, missing: missing, expired: expired,
       started: docs.length > 0,
@@ -228,6 +238,7 @@ var DATA = (function () {
   API.todayISO = todayISO;
 
   API.docsFor = docsFor;
+  API.docState = docState;
   API.paperwork = paperwork;
   API.signals = signals;
 

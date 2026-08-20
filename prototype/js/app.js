@@ -878,16 +878,20 @@ var APP = (function () {
 
       /* their required documents, none of them on file yet */
       var existing = DB.all('clientDocs').filter(function (d) { return d.client !== c.id; });
-      var rows = (prog.docs || []).map(function (d) {
-        return { client: c.id, name: d.name, required: d.required !== false,
-                 received: '—', expires: '—', status: 'Missing' };
+      var rows = (prog.docs || []).map(function (d, n) {
+        return { id: 'cd-' + c.id + '-' + n, client: c.id, name: d.name,
+                 required: d.required !== false,
+                 renews: d.expires !== false, period: d.period || '—',
+                 received: '—', expires: '—' };
       });
       DB.setCollection('clientDocs', existing.concat(rows));
 
       DB.log(user().name, 'Put ' + c.name + ' on the ' + prog.name + ' programme',
         rows.length + ' required documents added');
+      var need = rows.filter(function (r) { return r.required; }).length;
       toast('ok', c.name + ' is on ' + prog.name,
-        rows.length + ' required documents are now being tracked, none of them on file yet.');
+        need + ' required document' + (need === 1 ? '' : 's') +
+        ' now showing on the dashboard, one line each, until they are filed.');
     },
 
     /* Record the signed service agreement. */
@@ -1063,6 +1067,62 @@ var APP = (function () {
         inc + ' incidents · ' + b1 + '/' + b2 + '/' + b3 + '% budget · chase after ' + chase + ' days');
       toast('ok', 'Rules saved', 'They apply from now on, to records already in the system as well.');
       return 'stay';
+    },
+
+    /* ---------------- waiver documents ---------------- */
+
+    'doc.file':   function (S, el) { S.vars.docId = el.getAttribute('data-id'); return 'stay'; },
+    'doc.cancel': function (S) { S.vars.docId = null; return 'stay'; },
+
+    'doc.save': function (S) {
+      var d = DB.get('clientDocs', S.vars.docId);
+      if (!d) return 'stay';
+
+      var got = UI.readDate('dc-got');
+      if (!got) { toast('bad', 'When did it come in?', 'That date is what the system files it under.'); return 'stay'; }
+
+      var exp = d.renews ? UI.readDate('dc-exp') : '';
+      if (exp && UI.toISO(exp) <= UI.toISO(got)) {
+        toast('bad', 'It would expire before it arrived', 'Check the two dates.'); return 'stay';
+      }
+
+      DB.update('clientDocs', d.id, { received: got, expires: exp || '\u2014' });
+      S.vars.docId = null;
+
+      var c = DB.get('clients', d.client) || {};
+      var pw = DATA.paperwork(d.client);
+      DB.log(user().name, 'Filed "' + d.name + '" for ' + (c.name || 'a client'),
+        'Received ' + got + (exp ? ', expires ' + exp : ''));
+
+      if (DATA.docState(DB.get('clientDocs', d.id)) === 'Expired') {
+        toast('warn', d.name + ' is already out of date',
+          'It went on file, but that expiry has passed so it still shows on the dashboard.');
+      } else if (pw.complete) {
+        toast('ok', 'That was the last one',
+          (c.name || 'This client') + ' has every required document on file. Nothing is showing on the dashboard.');
+      } else {
+        toast('ok', d.name + ' is on file',
+          (pw.missing + pw.expired) + ' still outstanding for ' + (c.name || 'this client') + '.');
+      }
+      return 'stay';
+    },
+
+    'doc.unfile': function (S) {
+      var d = DB.get('clientDocs', S.vars.docId);
+      if (!d) return 'stay';
+      DB.update('clientDocs', d.id, { received: '\u2014', expires: '\u2014' });
+      S.vars.docId = null;
+      DB.log(user().name, 'Took "' + d.name + '" back off file', 'Waiver paperwork');
+      toast('info', d.name + ' is outstanding again', 'It is back on the dashboard.');
+      return 'stay';
+    },
+
+    'alerts.all': function (S) { S.vars.allAlerts = !S.vars.allAlerts; return 'stay'; },
+
+    /* A dashboard alert opens the record it is actually about. */
+    'alert.go': function (S, el) {
+      S.vars[el.getAttribute('data-var')] = el.getAttribute('data-id');
+      return null;
     },
 
     /* ---------------- incidents ---------------- */

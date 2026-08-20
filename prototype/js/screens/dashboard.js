@@ -19,7 +19,9 @@
   ];
 
   function alertRow(a) {
-    return '<div class="clist-row" data-goto="' + (a.goto || '') + '">' +
+    return '<div class="clist-row" data-goto="' + (a.goto || '') + '"' +
+      (a.setVar && a.id ? ' data-do="alert.go" data-var="' + UI.esc(a.setVar) +
+                          '" data-id="' + UI.esc(a.id) + '"' : '') + '>' +
       UI.badge(a.kind) +
       '<span style="display:flex;flex-direction:column;min-width:0">' +
         '<span class="cl-n">' + UI.esc(a.what) + '</span>' +
@@ -121,10 +123,15 @@
     h += '<div class="card"><div class="card-head"><h3>Needs attention now</h3>' +
       '<span class="spacer"></span><span class="sub">' + alerts.length + ' item' + (alerts.length === 1 ? '' : 's') + '</span></div>';
     if (alerts.length) {
-      h += '<div class="clist">' + alerts.slice(0, 10).map(alertRow).join('') + '</div>' +
+      var showAll = !!S.vars.allAlerts;
+      var shown = showAll ? alerts : alerts.slice(0, 10);
+      h += '<div class="clist">' + shown.map(alertRow).join('') + '</div>' +
         '<div class="card-foot"><span class="small muted">Filtered to ' + UI.esc(agName) + ' only.</span>' +
         '<span class="spacer"></span>' +
-        (alerts.length > 10 ? UI.btn('See all ' + alerts.length, { cls:'btn--sm btn--ghost', goto:'tasks.list' }) : '') +
+        (alerts.length > 10
+          ? '<button class="btn btn--sm btn--ghost" data-do="alerts.all">' +
+            (showAll ? 'Show the first 10 only' : 'See all ' + alerts.length) + '</button>'
+          : '') +
         '</div>';
     } else {
       h += panelEmpty('Nothing is due or overdue');

@@ -110,16 +110,17 @@ var DB = (function () {
     var template = clone(fresh().programmes[0].docs);
     state.clients.forEach(function (c, ci) {
       template.forEach(function (d, di) {
-        /* the first client has a gap and an expiry, everyone else is in order */
-        var st = 'On file';
-        if (ci === 0 && d.name === 'Physician order for services') st = 'Missing';
-        else if (ci === 0 && d.name === 'Annual health assessment') st = 'Expired';
-        else if (ci === 2 && di > 6) st = 'Missing';
+        /* the first client has a gap and an expiry, everyone else is in order.
+           No status is written down — the dates alone decide it. */
+        var gap = (ci === 0 && d.name === 'Physician order for services') ||
+                  (ci === 2 && di > 6);
+        var stale = (ci === 0 && d.name === 'Annual health assessment');
         state.clientDocs.push({
+          id: 'cd-' + c.id + '-' + di,
           client: c.id, name: d.name, required: d.required !== false,
-          received: st === 'Missing' ? '—' : '01 Jan 2026',
-          expires: d.expires ? (st === 'Expired' ? '11 Feb 2026' : '31 Dec 2026') : '—',
-          status: st
+          renews: !!d.expires, period: d.period || '—',
+          received: gap ? '—' : '01 Jan 2026',
+          expires: d.expires ? (gap ? '—' : stale ? '11 Feb 2026' : '31 Dec 2026') : '—'
         });
       });
     });

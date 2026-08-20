@@ -34,7 +34,7 @@ var ALERTS = (function () {
                                             : i.type + ' awaiting follow-up',
                  who: i.clientName + ' · ' + i.when.split(',')[0] + ' · ' + i.assigned,
                  when: st.key === 'overdue' ? st.days + ' days late' : 'due ' + i.due,
-                 id: i.id, goto:'inc.detail' });
+                 setVar:'incId', id: i.id, goto:'inc.detail' });
     });
 
     /* --- scheduled reviews --- */
@@ -51,27 +51,39 @@ var ALERTS = (function () {
         if (c.status !== 'expired' && c.status !== 'soon') return;   /* replaced ones are history */
         out.push({ kind: c.status === 'expired' ? 'Expired' : 'Due soon',
                    what: c.name + (c.status === 'expired' ? ' expired' : ' expiring'),
-                   who: g.name + ' · caregiver', when: c.due, goto:'cg.detail' });
+                   who: g.name + ' · caregiver', when: c.due,
+                   setVar:'cgId', id: g.id, goto:'cg.detail' });
       });
     });
 
-    /* --- client paperwork --- */
+    /* --- client paperwork ---
+       One line per document, not one per client. Ten documents outstanding
+       is ten things somebody has to go and collect, and the dashboard is
+       meant to be the list of those things. */
     DATA.inAgency(DATA.CLIENTS, agency).forEach(function (c) {
-      var pw = DATA.paperwork(c.id);
-      if (!pw.started || pw.complete) return;
-      if (pw.expired) out.push({ kind:'Expired', what:'A required document has expired',
-                                 who:c.name + ' · waiver paperwork', when:'renew it', goto:'clients.checklist' });
-      if (pw.missing) out.push({ kind:'Missing',
-                                 what: pw.missing + ' required document' + (pw.missing === 1 ? '' : 's') + ' not on file',
-                                 who:c.name + ' · waiver paperwork',
-                                 when: pw.onFile + ' of ' + pw.total + ' filed', goto:'clients.checklist' });
+      DATA.docsFor(c.id).forEach(function (d) {
+        if (d.required === false) return;
+        var st = DATA.docState(d);
+        if (st === 'On file') return;
+        out.push({
+          kind: st === 'Expired' ? 'Expired' : 'Missing',
+          what: d.name + (st === 'Expired' ? ' has expired' : ' not on file'),
+          who: c.name + ' · ' + (c.waiver || 'waiver') + ' paperwork',
+          when: st === 'Expired' ? 'expired ' + d.expires
+                                 : !d.renews ? 'one-off'
+                                 : /^\d/.test(String(d.period)) ? 'renews every ' + d.period
+                                 : String(d.period),
+          setVar:'clientId', id: c.id, goto: 'clients.checklist'
+        });
+      });
     });
 
     /* --- agreements running out --- */
     DATA.inAgency(DATA.CLIENTS, agency).forEach(function (c) {
       if (!c.agreement || c.agreement.status !== 'Due soon') return;
       out.push({ kind:'Due soon', what:'Service agreement expires',
-                 who:c.name, when:c.agreement.end, goto:'clients.list' });
+                 who:c.name, when:c.agreement.end,
+                 setVar:'clientId', id:c.id, goto:'clients.agreement' });
     });
 
     /* --- budget --- */
@@ -92,24 +104,37 @@ var ALERTS = (function () {
                  when:'due ' + hp.visitDue, goto:'hosp.visit' });
     });
 
-    out.sort(function (a, b) { return (RANK[a.kind] || 9) - (RANK[b.kind] || 9); });
+    /* Overdue ranks 0, which is falsy — an "|| 9" fallback here sorted the
+       most urgent things to the bottom, where the dashboard cut them off. */
+    function rank(kind) { return RANK[kind] === undefined ? 9 : RANK[kind]; }
+    out.sort(function (a, b) { return rank(a.kind) - rank(b.kind); });
     return out;
   }
 
   /* Recent completed work, for the "this week" panel. */
+  /* What has actually happened, taken from the audit trail rather than from
+     a handful of hand-picked categories. Anything the system did on its own
+     is marked, because that is the part worth noticing. */
   function recent(agency) {
+    var log = DATA.AUDIT || [];
+    if (log.length) {
+      return log.slice(0, 5).map(function (e) {
+        var auto = e.who === 'System';
+        return { state: auto ? 'bad' : 'ok',
+                 what: e.what,
+                 who: (auto ? 'The system' : e.who) + ' · ' + e.when };
+      });
+    }
+
+    /* A demo dataset that carries history but no log still has something to show. */
     var out = [];
-    DATA.inAgency(DATA.OVERSIGHT, agency).forEach(function (o) {
-      if (o.status !== 'Completed') return;
-      out.push({ state:'ok', what:o.type + ' reviewed', who:o.clientName + ' · ' + o.due + ' · ' + o.who });
-    });
     DATA.inAgency(DATA.QI, agency).forEach(function (q) {
       if (!q.auto) return;
       out.push({ state:'bad', what:'Quality item opened automatically', who:q.clientName + ' · ' + q.opened });
     });
     DATA.inAgency(DATA.OVERSIGHT, agency).forEach(function (o) {
-      if (o.status !== 'Due soon') return;
-      out.push({ state:'now', what:o.type + ' due', who:o.clientName + ' · ' + o.due + ' · ' + o.who });
+      if (o.status !== 'Completed') return;
+      out.push({ state:'ok', what:o.type + ' reviewed', who:o.clientName + ' · ' + o.due + ' · ' + o.who });
     });
     return out.slice(0, 5);
   }
