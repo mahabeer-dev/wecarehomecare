@@ -60,16 +60,16 @@ var DEMO = (function () {
   /* ---------------- caregivers ---------------- */
 
   var CAREGIVERS = [
-    { id:'g1', agency:'ga', name:'Tanya Fields',    role:'Direct Support Professional', hired:'Mar 2023', worst:'expired' },
-    { id:'g2', agency:'ga', name:'Marcus Odell',    role:'Direct Support Professional', hired:'Jul 2024', worst:'soon' },
-    { id:'g3', agency:'ga', name:'Priya Raghunath', role:'Direct Support Professional', hired:'Jan 2025', worst:'ok' },
-    { id:'g4', agency:'ga', name:'Denise Holloway', role:'Home Health Aide',            hired:'Sep 2022', worst:'soon' },
-    { id:'g5', agency:'ga', name:'Eli Whitcomb',    role:'Direct Support Professional', hired:'Apr 2025', worst:'ok' },
-    { id:'g6', agency:'ga', name:'Yvonne Pryce',    role:'Registered Nurse',            hired:'Feb 2021', worst:'ok' },
-    { id:'g7', agency:'ms', name:'Carla Benoit',    role:'Direct Support Professional', hired:'May 2024', worst:'expired' },
-    { id:'g8', agency:'ms', name:'Roland Pace',     role:'Home Health Aide',            hired:'Oct 2023', worst:'ok' },
-    { id:'g9', agency:'ms', name:'Shanice Dupree',  role:'Direct Support Professional', hired:'Aug 2025', worst:'soon' },
-    { id:'g10',agency:'ms', name:'Otis Vandiver',   role:'Direct Support Professional', hired:'Dec 2022', worst:'ok' }
+    { id:'g1', agency:'ga', name:'Tanya Fields',    role:'Direct Support Professional', hired:'06 Mar 2023', worst:'expired' },
+    { id:'g2', agency:'ga', name:'Marcus Odell',    role:'Direct Support Professional', hired:'15 Jul 2024', worst:'soon' },
+    { id:'g3', agency:'ga', name:'Priya Raghunath', role:'Direct Support Professional', hired:'13 Jan 2025', worst:'ok' },
+    { id:'g4', agency:'ga', name:'Denise Holloway', role:'Home Health Aide',            hired:'19 Sep 2022', worst:'soon' },
+    { id:'g5', agency:'ga', name:'Eli Whitcomb',    role:'Direct Support Professional', hired:'07 Apr 2025', worst:'ok' },
+    { id:'g6', agency:'ga', name:'Yvonne Pryce',    role:'Registered Nurse',            hired:'11 Feb 2021', worst:'ok' },
+    { id:'g7', agency:'ms', name:'Carla Benoit',    role:'Direct Support Professional', hired:'20 May 2024', worst:'expired' },
+    { id:'g8', agency:'ms', name:'Roland Pace',     role:'Home Health Aide',            hired:'17 Oct 2023', worst:'ok' },
+    { id:'g9', agency:'ms', name:'Shanice Dupree',  role:'Direct Support Professional', hired:'04 Aug 2025', worst:'soon' },
+    { id:'g10',agency:'ms', name:'Otis Vandiver',   role:'Direct Support Professional', hired:'12 Dec 2022', worst:'ok' }
   ];
 
   var CREDENTIALS = {

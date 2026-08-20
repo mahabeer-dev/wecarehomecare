@@ -511,21 +511,6 @@ var APP = (function () {
      Buttons carrying data-do="name" run one of these before
      navigating. This is where the prototype actually saves.  */
 
-  /* The demo records are written against 'ga' and 'ms'. The agencies Dawn
-     actually created have whatever ids her short names produced, so imported
-     records are remapped onto them before they are stored. */
-  function remapAgencies(records) {
-    var mine = DB.all('agencies');
-    if (!mine.length) return records;
-    var map = { ga: mine[0].id, ms: (mine[1] || mine[0]).id };
-    records.forEach(function (r) {
-      if (r.agency && map[r.agency]) r.agency = map[r.agency];
-    });
-    return records;
-  }
-
-  function copyDemo(list) { return remapAgencies(JSON.parse(JSON.stringify(list))); }
-
   /* Reads the reminder form, or returns null and complains. */
   function readRule() {
     function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
@@ -874,8 +859,11 @@ var APP = (function () {
       if (!c) return 'stay';
       function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
 
-      var start = val('c-start'), end = val('c-end');
+      var start = UI.readDate('c-start'), end = UI.readDate('c-end');
       if (!start || !end) { toast('bad', 'Both dates are needed', 'The system watches the end date.'); return 'stay'; }
+      if (UI.toISO(end) <= UI.toISO(start)) {
+        toast('bad', 'The end date comes first', 'An agreement has to run forwards.'); return 'stay';
+      }
 
       DB.update('clients', c.id, { agreement: { start: start, end: end, status: 'Current' } });
       DB.log(user().name, 'Recorded a service agreement for ' + c.name, start + ' to ' + end);
@@ -935,7 +923,7 @@ var APP = (function () {
       DB.update('caregivers', g.id, {
         role: role,
         agency: val('g-agency') || (DB.all('agencies')[0] || {}).id || null,
-        hired: val('g-hired') || DB.stamp().slice(3, 11)
+        hired: UI.readDate('g-hired') || DB.stamp().slice(0, 11)
       });
       DB.log(user().name, 'Set ' + g.name + ' as ' + role, 'Staff setup');
       toast('ok', g.name + ' is set up as a ' + role.toLowerCase(),
@@ -956,10 +944,14 @@ var APP = (function () {
       }
 
       var status = val('cr-status') || 'ok';
+      var done = UI.readDate('cr-done'), due = UI.readDate('cr-due');
+      if (done && due && UI.toISO(due) <= UI.toISO(done)) {
+        toast('bad', 'It would expire before it was earned', 'Check the two dates.'); return 'stay';
+      }
       DB.add('creds', {
         caregiver: g.id, name: name,
-        done: val('cr-done') || '—',
-        due: val('cr-due') || '—',
+        done: done || '—',
+        due: due || '—',
         status: status
       });
       DB.log(user().name, 'Added "' + name + '" for ' + g.name, 'Staff setup');
@@ -989,23 +981,37 @@ var APP = (function () {
       return 'stay';
     },
 
-    'setup.finish': function (S) {
-      /* Only for clients that were actually imported. */
-      var have = {};
-      DB.all('clients').forEach(function (c) { have[c.id] = true; });
-      function forExisting(list) {
-        return list.filter(function (r) { return !r.client || have[r.client]; });
+    /* One authorisation, typed in. Nothing else is invented alongside it. */
+    'auth.add': function (S) {
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var c = DB.get('clients', val('au-client'));
+      if (!c) { toast('bad', 'Pick a client', 'An authorisation belongs to one person.'); return 'stay'; }
+
+      var units = parseFloat(val('au-units').replace(/[^0-9.]/g, ''));
+      var rate  = parseFloat(val('au-rate').replace(/[^0-9.]/g, ''));
+      if (!units || units <= 0) { toast('bad', 'How many units were approved?', 'One unit is 15 minutes.'); return 'stay'; }
+      if (!rate || rate <= 0)   { toast('bad', 'What is the rate per unit?', 'In dollars, for example 6.25.'); return 'stay'; }
+
+      var start = UI.readDate('au-start'), end = UI.readDate('au-end');
+      if (!start || !end) { toast('bad', 'Both dates are needed', 'The system watches the end date.'); return 'stay'; }
+      if (UI.toISO(end) <= UI.toISO(start)) {
+        toast('bad', 'The end date comes first', 'An authorisation has to run forwards.'); return 'stay';
       }
 
-      if (!DB.all('auths').length) {
-        DB.addMany('auths',     remapAgencies(forExisting(JSON.parse(JSON.stringify(DEMO.auths)))));
-        DB.addMany('usage',     JSON.parse(JSON.stringify(DEMO.usage)));
-        DB.addMany('oversight', remapAgencies(forExisting(JSON.parse(JSON.stringify(DEMO.oversight)))));
-        DB.addMany('isp',       forExisting(JSON.parse(JSON.stringify(DEMO.isp))));
-      }
-      DB.setupStep(7); S.vars.setupStep = 7;
-      DB.log(user().name, 'Added ' + DB.all('auths').length + ' authorisations — setup complete', 'Setup');
-      toast('ok', 'Setup complete', 'From tomorrow the dashboard starts telling you what needs attention.');
+      DB.add('auths', {
+        client: c.id, clientName: c.name, agency: c.agency,
+        service: val('au-service') || 'Community Living Support',
+        number: val('au-no') || '—',
+        waiver: val('au-waiver') || '',
+        start: start, end: end,
+        units: units, rate: rate, used: 0
+      });
+
+      DB.log(user().name, 'Added an authorisation for ' + c.name,
+        units.toLocaleString() + ' units at ' + DATA.money(rate));
+      toast('ok', 'Authorisation saved',
+        'Nothing is used yet. Enter hours each month and the utilisation works itself out.');
     }
   };
 
@@ -1034,7 +1040,7 @@ var APP = (function () {
       }
       else if (chromeBtn.id === 'c-demo') {
         DB.loadDemo();
-        S.vars.setupStep = 7;
+        S.vars.setupStep = 6;
         S.agency = 'ga';
         S.screen = 'dash.home';
         toast('ok', 'Demo agency loaded', 'A populated system, for showing what it looks like in use.');

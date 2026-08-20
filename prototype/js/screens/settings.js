@@ -190,7 +190,7 @@
         'They take effect on the next nightly run. This is the screen that decides how noisy ' +
         'or how quiet the system is, so it belongs to you rather than to us.');
 
-      if (DB.setupStep() < 7) {
+      if (DB.setupStep() < 6) {
         h += '<div class="card"><div class="card-foot">' +
           UI.btn('Back', { goto: 'setup.programmes' }) + '<span class="spacer"></span>' +
           '<button class="btn btn--primary" data-do="setup.reminders" data-goto="dash.home">' +

@@ -116,6 +116,51 @@ var UI = (function () {
     '</button>';
   }
 
+  /* ---------------- dates ----------------
+     Dates are stored and shown the way people write them ("01 Jan 2026"),
+     but a native picker only speaks ISO. These translate between the two. */
+
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function toISO(v) {
+    if (!v) return '';
+    var s = String(v).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    var m = s.match(/^(\d{1,2})\s+([A-Za-z]{3})[A-Za-z]*\s+(\d{4})/);
+    if (!m) return '';
+    var mi = MONTHS.indexOf(m[2].charAt(0).toUpperCase() + m[2].slice(1, 3).toLowerCase());
+    return mi < 0 ? '' : m[3] + '-' + pad2(mi + 1) + '-' + pad2(+m[1]);
+  }
+
+  function fromISO(v) {
+    if (!v) return '';
+    var m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return String(v);
+    return m[3] + ' ' + MONTHS[+m[2] - 1] + ' ' + m[1];
+  }
+
+  function toISOTime(v) {
+    var d = toISO(v);
+    if (!d) return '';
+    var t = String(v).match(/(\d{1,2}):(\d{2})/);
+    return d + 'T' + (t ? pad2(+t[1]) + ':' + t[2] : '00:00');
+  }
+
+  function fromISOTime(v) {
+    if (!v) return '';
+    var p = String(v).split('T');
+    var d = fromISO(p[0]);
+    return p[1] ? d + ', ' + p[1].slice(0, 5) : d;
+  }
+
+  /* Read a picker back out in the format the rest of the system uses. */
+  function readDate(id) {
+    var e = document.getElementById(id);
+    if (!e) return '';
+    return (e.type === 'datetime-local' ? fromISOTime : fromISO)(String(e.value || '').trim());
+  }
+
   function field(label, o) {
     o = o || {};
     var inner;
@@ -129,6 +174,11 @@ var UI = (function () {
         }).join('') + '</select>';
     } else if (o.type === 'select') {
       inner = '<div class="select" data-inert' + id + '>' + esc(o.value) + '</div>';
+    } else if (o.type === 'date' || o.type === 'datetime') {
+      var dt = o.type === 'datetime';
+      inner = '<input class="input input--date" data-inert' + id +
+        ' type="' + (dt ? 'datetime-local' : 'date') + '"' +
+        ' value="' + esc(dt ? toISOTime(o.value) : toISO(o.value)) + '">';
     } else if (o.type === 'textarea') {
       inner = '<textarea class="textarea" data-inert' + id + '>' + esc(o.value || '') + '</textarea>';
     } else {
@@ -214,6 +264,8 @@ var UI = (function () {
   return {
     icon: icon, esc: esc, initials: initials, badge: badge, stat: stat, meter: meter,
     banner: banner, btn: btn, progress: progress, field: field, kv: kv, tlItem: tlItem, bars: bars,
-    empty: empty, emrLink: emrLink, emptyModule: emptyModule, noRecord: noRecord
+    empty: empty, emrLink: emrLink, emptyModule: emptyModule, noRecord: noRecord,
+    toISO: toISO, fromISO: fromISO, toISOTime: toISOTime, fromISOTime: fromISOTime,
+    readDate: readDate
   };
 })();

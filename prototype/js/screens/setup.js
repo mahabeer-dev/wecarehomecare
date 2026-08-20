@@ -12,8 +12,7 @@
     { id:'programmes', label:'Add your waiver programmes',sub:'And the documents each one requires',  goto:'setup.programmes', icon:'doc' },
     { id:'reminders',  label:'Check the reminder timings',sub:'Defaults are sensible — change if not',goto:'set.reminders',    icon:'clock' },
     { id:'clients',    label:'Import your clients',       sub:'From a spreadsheet',                   goto:'clients.import',   icon:'upload' },
-    { id:'staff',      label:'Import your caregivers',    sub:'Their details — roles come after',      goto:'cg.import',        icon:'shield' },
-    { id:'auths',      label:'Add authorisations',        sub:'Then the budget tracking starts',      goto:'budget.setup',     icon:'money' }
+    { id:'staff',      label:'Import your caregivers',    sub:'Their details — roles come after',      goto:'cg.import',        icon:'shield' }
   ];
 
   function done() { return Math.max(0, Math.min(STEPS.length, DB.setupStep())); }
@@ -121,7 +120,7 @@
 
       var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt">' +
-        '<span class="eyebrow-m">Step 1 of 7</span><h1>Your agencies</h1>' +
+        '<span class="eyebrow-m">Step 1 of 6</span><h1>Your agencies</h1>' +
         '<span class="sub">Add one for each company you run. Every record in the system ' +
         'belongs to exactly one of them, and they never mix.</span>' +
         '</span></div>';
@@ -197,7 +196,7 @@
 
       var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt">' +
-        '<span class="eyebrow-m">Step 2 of 7</span><h1>Who gets a login</h1>' +
+        '<span class="eyebrow-m">Step 2 of 6</span><h1>Who gets a login</h1>' +
         '<span class="sub">Office and clinical staff only. Caregivers never get accounts — ' +
         'they exist as compliance records instead.</span>' +
         '</span></div>';
@@ -306,7 +305,7 @@
 
       var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt">' +
-        '<span class="eyebrow-m">Step 3 of 7</span><h1>Your waiver programmes</h1>' +
+        '<span class="eyebrow-m">Step 3 of 6</span><h1>Your waiver programmes</h1>' +
         '<span class="sub">And the documents each one requires. This is the list you already ' +
         'keep on paper — and the only part of setup nobody can do for you.</span>' +
         '</span></div>';
@@ -446,7 +445,7 @@
         icon: 'plus',
         title: 'Your dashboard fills itself in',
         body: 'Once your clients, staff and authorisations are in, every date the system knows about shows up here on the day it needs attention.',
-        actions: [{ label: 'Continue setting up · ' + d + ' of 7 done', primary: true, icon: 'arrow', goto: 'setup.checklist' }],
+        actions: [{ label: 'Continue setting up · ' + d + ' of ' + STEPS.length + ' done', primary: true, icon: 'arrow', goto: 'setup.checklist' }],
         note: 'Nothing here is typed twice. The dashboard is built entirely from records you have already entered.'
       });
 
@@ -465,7 +464,8 @@
         '<span style="width:60px;height:60px;border-radius:50%;background:var(--gr-50);color:var(--gr-500);display:grid;place-items:center">' +
         UI.icon('check', 'ei') + '</span>' +
         '<h1 style="margin:0;font-size:25px;font-weight:650">You are set up</h1>' +
-        '<p class="muted" style="max-width:48ch">38 clients, 12 caregivers and their authorisations are in. ' +
+        '<p class="muted" style="max-width:48ch">' +
+        DB.all('clients').length + ' clients and ' + DB.all('caregivers').length + ' caregivers are in. ' +
         'From tomorrow morning the dashboard will start telling you what needs attention.</p>' +
         '<div class="row" style="justify-content:center;margin-top:6px">' +
           UI.btn('Go to the dashboard', { cls: 'btn--primary', icon: 'arrow', goto: 'dash.home' }) +

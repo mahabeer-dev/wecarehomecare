@@ -20,9 +20,9 @@ FLOWS['dayone'] = {
     { screen: 'clients.import.preview', label: 'Check it before anything saves' },
     { screen: 'clients.import.done',    label: 'Now the caregivers', setupStep: 5 },
     { screen: 'cg.list',           label: 'Import them the same way' },
-    { screen: 'clients.import',    label: 'Then the authorisations', setupStep: 6 },
-    { screen: 'budget.list',       label: 'Add the first one' },
-    { screen: 'budget.setup',      label: 'Setup is finished', setupStep: 7 },
+    { screen: 'cg.import',         label: 'Pick the staff file' },
+    { screen: 'cg.import.check',   label: 'Check it before anything saves' },
+    { screen: 'cg.import.done',    label: 'That was the last step', setupStep: 6 },
     { screen: 'setup.done',        label: 'The dashboard, now that it has dates to watch' },
     { screen: 'dash.home',         label: 'Finish' }
   ]

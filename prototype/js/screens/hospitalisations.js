@@ -60,7 +60,7 @@
           UI.field('Client', { type: 'select', value: 'Maria Lopez' }) +
           UI.field('Type', { type: 'select', value: 'Admission' }) +
           UI.field('Hospital', { value: 'Piedmont Athens Regional' }) +
-          UI.field('Date and time', { value: '12 Apr 2026, 21:10' }) +
+          UI.field('Date and time', { type:'datetime', value: '12 Apr 2026, 21:10' }) +
           UI.field('Reason', { type: 'textarea', span: true, value: 'Dizziness and suspected dehydration.' }) +
         '</div>' +
         '<div class="field"><label>Required notifications made</label><div class="row" style="gap:8px">' +
@@ -151,7 +151,7 @@
 
         '<div class="card"><div class="card-head"><h3>What the nurse found</h3></div><div class="card-body">' +
         '<div class="form-grid">' +
-          UI.field('Visit date', { value: '18 Apr 2026' }) +
+          UI.field('Visit date', { type:'date', value: '18 Apr 2026' }) +
           UI.field('Completed by', { type: 'select', value: 'Yvonne Pryce' }) +
           UI.field('Client status after discharge', { type: 'select', value: 'Stable, mobility reduced' }) +
           UI.field('Discharge instructions reviewed', { type: 'select', value: 'Yes, with client and family' }) +

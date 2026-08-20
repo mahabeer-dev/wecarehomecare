@@ -79,8 +79,8 @@
         '<div class="card-body"><div class="form-grid">' +
           UI.field('Visit type', { type: 'select', value: '62-day visit' }) +
           UI.field('Assigned supervisor', { type: 'select', value: 'Renee Alcott' }) +
-          UI.field('Due date', { value: '28 Apr 2026' }) +
-          UI.field('Visit completed on', { value: '27 Apr 2026' }) +
+          UI.field('Due date', { type:'date', value: '28 Apr 2026' }) +
+          UI.field('Visit completed on', { type:'date', value: '27 Apr 2026' }) +
           UI.field('Findings', { type: 'textarea', span: true,
             value: 'Home clean and safe. Client engaged. Hallway lighting is dim — flagged for the falls quality item.' }) +
           UI.field('Follow-up required', { type: 'select', value: 'Yes — lighting assessment' }) +
@@ -109,9 +109,9 @@
       var body = '<div class="card"><div class="card-head"><h3>Annual reassessment</h3></div>' +
         '<div class="card-body"><div class="form-grid">' +
           UI.field('Assessed by', { type: 'select', value: 'Yvonne Pryce · Registered Nurse' }) +
-          UI.field('Assessment date', { value: '11 May 2026' }) +
-          UI.field('Previous assessment', { value: '12 May 2025' }) +
-          UI.field('Next due', { value: '11 May 2027', hint: 'Set automatically from the annual interval' }) +
+          UI.field('Assessment date', { type:'date', value: '11 May 2026' }) +
+          UI.field('Previous assessment', { type:'date', value: '12 May 2025' }) +
+          UI.field('Next due', { type:'date', value: '11 May 2027', hint: 'Set automatically from the annual interval' }) +
           UI.field('Changes identified', { type: 'textarea', span: true,
             value: 'Mobility reduced since the April hospital stay. New medication may be contributing to light-headedness.' }) +
         '</div>' +
@@ -142,9 +142,9 @@
       var body = '<div class="grid grid-sb"><div class="grid" style="gap:16px">' +
         '<div class="card"><div class="card-head"><h3>Health Risk Screening Tool</h3></div>' +
         '<div class="card-body"><div class="form-grid">' +
-          UI.field('Current HRST date', { value: '18 Jun 2025' }) +
+          UI.field('Current HRST date', { type:'date', value: '18 Jun 2025' }) +
           UI.field('Reviewed by', { type: 'select', value: 'Yvonne Pryce' }) +
-          UI.field('Review due', { value: '24 Apr 2026' }) +
+          UI.field('Review due', { type:'date', value: '24 Apr 2026' }) +
           UI.field('Was an update required?', { type: 'select', value: 'Yes' }) +
           UI.field('What changed', { type: 'textarea', span: true,
             value: 'Falls risk raised following three incidents in April and the hospital admission. Medication section updated for the new diuretic.' }) +
@@ -218,7 +218,7 @@
         '<div class="card-body"><div class="form-grid">' +
           UI.field('Client', { type: 'select', value: 'Adaeze Okafor' }) +
           UI.field('DDP', { type: 'select', value: 'External · Marcia Threadgill' }) +
-          UI.field('Review due', { value: '30 Apr 2026' }) +
+          UI.field('Review due', { type:'date', value: '30 Apr 2026' }) +
           UI.field('Frequency', { type: 'select', value: 'Quarterly' }) +
           UI.field('Findings', { type: 'textarea', span: true,
             value: 'Documentation broadly in order. Service agreement expires in 12 days and has not been started. Two monthly ISP entries were late.' }) +

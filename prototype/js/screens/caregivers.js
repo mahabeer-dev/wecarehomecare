@@ -189,7 +189,9 @@
         '<p class="muted" style="max-width:46ch">' + c.dup + ' duplicate row was skipped. ' +
         'Each person now needs a role and their credentials adding, which you do on their own page.</p>' +
         '<div class="row" style="justify-content:center;margin-top:6px">' +
-          UI.btn('Set the first one up', { cls: 'btn--primary', goto: 'cg.list' }) +
+          (DB.setupStep() >= 6
+            ? UI.btn('That was the last setup step', { cls: 'btn--primary', icon: 'arrow', goto: 'setup.done' })
+            : UI.btn('Set the first one up', { cls: 'btn--primary', goto: 'cg.list' })) +
         '</div></div></div>' +
 
         '<div class="card"><div class="card-head"><h3>What still has to be done</h3></div>' +
@@ -328,7 +330,7 @@
             options: agencies.length
               ? agencies.map(function (a) { return { value:a.id, label:a.short }; })
               : [{ value:'', label:'no agencies yet' }] }) +
-          UI.field('Hired on', { id:'g-hired', value: g.hired || '', placeholder:'Mar 2023' }) +
+          UI.field('Hired on', { id:'g-hired', type:'date', value: g.hired || '' }) +
         '</div>' +
         UI.banner('info', 'Nurses are the exception, and only in one direction',
           'A nurse listed here is a compliance record like everyone else. If they also need to write ' +
@@ -377,8 +379,8 @@
           UI.field('Requirement', { id:'cr-name', type:'select',
             value: (types[0] || {}).name || '',
             options: types.map(function (t) { return { value:t.name, label:t.name + ' — renews every ' + t.renews }; }) }) +
-          UI.field('Completed on', { id:'cr-done', value:'', placeholder:'12 Feb 2024' }) +
-          UI.field('Expires on', { id:'cr-due', value:'', placeholder:'12 Feb 2026',
+          UI.field('Completed on', { id:'cr-done', type:'date', value:'' }) +
+          UI.field('Expires on', { id:'cr-due', type:'date', value:'',
             hint:'Reminders go out 60, 30, 14 and 7 days before' }) +
           UI.field('Where it stands', { id:'cr-status', type:'select', value:'ok',
             options:[{ value:'ok', label:'Current' },

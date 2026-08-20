@@ -498,10 +498,11 @@
         '</span></div>' +
 
         '<div class="card"><div class="card-body"><div class="form-grid">' +
-          UI.field('Signed on', { id:'c-start', value: c.agreement ? c.agreement.start : '',
-            placeholder:'01 Jan 2026' }) +
-          UI.field('Runs until', { id:'c-end', value: c.agreement ? c.agreement.end : '',
-            placeholder:'31 Dec 2026', hint:'You will be reminded 90, 60 and 30 days before' }) +
+          UI.field('Signed on', { id:'c-start', type:'date',
+            value: c.agreement ? c.agreement.start : '' }) +
+          UI.field('Runs until', { id:'c-end', type:'date',
+            value: c.agreement ? c.agreement.end : '',
+            hint:'You will be reminded 90, 60 and 30 days before' }) +
         '</div></div>' +
         '<div class="card-foot">' + UI.btn('Back', { goto:'clients.profile' }) + '<span class="spacer"></span>' +
           '<button class="btn btn--primary" data-do="client.agreement" data-goto="clients.profile">' +

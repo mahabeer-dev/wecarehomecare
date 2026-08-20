@@ -231,6 +231,22 @@ table.tbl .sub2 { font-size: 12px; color: var(--text-mute); }
 .input::placeholder { color: var(--n-400); }
 .textarea { min-height: 88px; resize: vertical; }
 
+/* Native pickers, made to sit at the same height as a text field
+   and to tint their calendar button with the brand purple. */
+.input--date {
+  min-height: 37px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.input--date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: .45;
+}
+/* No background tint here — it paints over the calendar glyph itself. */
+.input--date::-webkit-calendar-picker-indicator:hover { opacity: .9; }
+.input--date::-webkit-datetime-edit { padding: 0; }
+.input--date:invalid { color: var(--n-400); }
+
 .select {
   appearance: none;
   padding-right: 32px;

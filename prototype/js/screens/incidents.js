@@ -63,7 +63,7 @@
         '<div class="form-grid">' +
           UI.field('Client', { type: 'select', value: 'Maria Lopez' }) +
           UI.field('Type', { type: 'select', value: 'Fall' }) +
-          UI.field('Date and time', { value: '03 Apr 2026, 14:20' }) +
+          UI.field('Date and time', { type:'datetime', value: '03 Apr 2026, 14:20' }) +
           UI.field('Where', { value: 'Client home — kitchen' }) +
           UI.field('What happened', { type: 'textarea', span: true,
             value: 'Client lost balance while reaching for a cupboard. No visible injury. Vitals normal.' }) +
@@ -82,7 +82,7 @@
         '<div class="card-head" style="border-top:1px solid var(--border)"><h3>Follow-up</h3></div>' +
         '<div class="card-body"><div class="form-grid">' +
           UI.field('Assign follow-up to', { type: 'select', value: 'Yvonne Pryce · Registered Nurse' }) +
-          UI.field('Due by', { value: '10 Apr 2026', hint: '7 days after the incident' }) +
+          UI.field('Due by', { type:'date', value: '10 Apr 2026', hint: '7 days after the incident' }) +
         '</div>' +
         UI.banner('info', 'The system will chase this',
           'If the follow-up is not completed by the due date it appears on the dashboard and keeps ageing until someone acts.') +

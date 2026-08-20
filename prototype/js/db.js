@@ -21,7 +21,7 @@ var DB = (function () {
   /* Bump this whenever the shape of the data changes. A stored copy from an
      older build is discarded rather than merged, because a half-old, half-new
      store looks like working data and is not. */
-  var SCHEMA = 3;
+  var SCHEMA = 4;
 
   var state = null;
   var storageWorks = true;
@@ -141,7 +141,7 @@ var DB = (function () {
     state.oversight   = clone(DEMO.oversight);
     state.tasks       = clone(DEMO.tasks);
     state.audit       = clone(DEMO.audit);
-    state.settings.setupStep = 7;
+    state.settings.setupStep = 6;
     writeStore();
   }
 

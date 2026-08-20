@@ -16,8 +16,8 @@
         '<div class="card-body"><div class="form-grid">' +
           UI.field('What', { type: 'select', value: 'Budget utilisation' }) +
           UI.field('Agency', { type: 'select', value: 'Georgia' }) +
-          UI.field('From', { value: '01 Jan 2026' }) +
-          UI.field('To', { value: '05 May 2026' }) +
+          UI.field('From', { type:'date', value: '01 Jan 2026' }) +
+          UI.field('To', { type:'date', value: '05 May 2026' }) +
           UI.field('Client', { type: 'select', value: 'All clients' }) +
           UI.field('Status', { type: 'select', value: 'All' }) +
         '</div>' +

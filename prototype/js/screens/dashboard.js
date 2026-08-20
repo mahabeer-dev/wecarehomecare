@@ -15,8 +15,7 @@
     { n:3, label:'Add your waiver programmes', goto:'setup.programmes' },
     { n:4, label:'Check the reminder timings', goto:'set.reminders' },
     { n:5, label:'Import your clients',        goto:'clients.import' },
-    { n:6, label:'Import your caregivers',     goto:'cg.import' },
-    { n:7, label:'Add authorisations',         goto:'budget.setup' }
+    { n:6, label:'Import your caregivers',     goto:'cg.import' }
   ];
 
   function alertRow(a) {
@@ -81,7 +80,7 @@
   /* ---------------- the working dashboard ---------------- */
 
   function adminDash(S) {
-    if (DB.setupStep() < 7) return setupDash(S);
+    if (DB.setupStep() < SETUP.length) return setupDash(S);
 
     var ag = S.role === 'superadmin' ? S.agency : S.agency;
     var agName = DATA.agencyShort(ag);
@@ -206,7 +205,7 @@
   /* ---------------- nurse ---------------- */
 
   function nurseDash(S) {
-    if (DB.setupStep() < 7) return setupDash(S);
+    if (DB.setupStep() < SETUP.length) return setupDash(S);
 
     var me = (APP.user() || {}).name;
     var mine = ALERTS.compute(S.agency).filter(function (a) {

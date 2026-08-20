@@ -60,28 +60,44 @@
 
   screen('budget.setup', {
     title: 'New authorisation', nav: 'budget',
-    crumb: 'Authorisations <span>›</span> <b>New</b>',
-    render: function () {
+    crumb: 'Authorisations <span>&rsaquo;</span> <b>New</b>',
+    render: function (S) {
+      var clients = DATA.inAgency(DATA.CLIENTS, S.agency);
+      if (!clients.length) return '<div class="page page--narrow">' +
+        '<div class="page-head"><span class="ph-txt"><h1>New authorisation</h1>' +
+        '<span class="sub">Nothing to attach it to yet</span></span></div>' +
+        UI.emptyModule({ icon:'money', title:'You need a client first',
+          body:'An authorisation is money approved for one person, so there has to be somebody to approve it for.',
+          actions:[{ label:'Go to clients', primary:true, goto:'clients.list' }] }) + '</div>';
+
+      var progs = DB.all('programmes').map(function (p) { return p.name; });
+
       return '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt"><h1>New authorisation</h1>' +
         '<span class="sub">Entered once. Everything after this is calculated.</span></span></div>' +
 
         '<div class="card"><div class="card-head"><h3>What was approved</h3></div><div class="card-body">' +
         '<div class="form-grid">' +
-          UI.field('Client', { type: 'select', value: 'Maria Lopez' }) +
-          UI.field('Service', { type: 'select', value: 'Community Living Support' }) +
-          UI.field('Authorisation number', { value: 'PA-GA-44118' }) +
-          UI.field('Waiver', { type: 'select', value: 'NOW' }) +
-          UI.field('Period starts', { value: '01 Jan 2026' }) +
-          UI.field('Period ends', { value: '31 Dec 2026' }) +
-          UI.field('Authorised units', { value: '2,000', hint: 'One unit = 15 minutes, so this is 500 hours' }) +
-          UI.field('Rate per unit', { value: '$6.25', hint: 'Total value: $12,500.00' }) +
+          UI.field('Client', { id:'au-client', type:'select',
+            options: clients.map(function (c) { return { value:c.id, label:c.name }; }) }) +
+          UI.field('Service', { id:'au-service', type:'select',
+            options:['Community Living Support','Personal Support','Respite','Supported Employment','Behaviour Support'] }) +
+          UI.field('Authorisation number', { id:'au-no', value:'', placeholder:'PA-GA-44118' }) +
+          UI.field('Waiver', { id:'au-waiver', type:'select',
+            options: progs.length ? progs : ['NOW'] }) +
+          UI.field('Period starts', { id:'au-start', type:'date', value:'' }) +
+          UI.field('Period ends', { id:'au-end', type:'date', value:'' }) +
+          UI.field('Authorised units', { id:'au-units', value:'', placeholder:'2000',
+            hint:'One unit is 15 minutes, so 2,000 units is 500 hours' }) +
+          UI.field('Rate per unit', { id:'au-rate', value:'', placeholder:'6.25',
+            hint:'In dollars. The total value is worked out for you' }) +
         '</div></div>' +
         '<div class="card-foot">' + UI.btn('Cancel', { goto: 'budget.list' }) + '<span class="spacer"></span>' +
-        '<button class="btn btn--primary" data-do="setup.finish" data-goto="setup.done">' + UI.icon('check') + 'Save authorisation</button>' + '</div></div>' +
+        '<button class="btn btn--primary" data-do="auth.add" data-goto="budget.list">' +
+        UI.icon('check') + 'Save authorisation</button>' + '</div></div>' +
 
         UI.banner('info', 'A client can hold several authorisations at once',
-          'Maria also has a Respite authorisation at a different rate. Each one is tracked and alerted on separately.') +
+          'Each one is tracked and alerted on separately, even where they run over the same months.') +
       '</div>';
     }
   });
@@ -99,7 +115,7 @@
           UI.field('Month', { type: 'select', value: 'April 2026' }) +
           UI.field('Hours delivered', { value: '96', hint: 'Entered as hours — converted to 384 units automatically' }) +
           UI.field('Entered by', { value: 'Renee Alcott' }) +
-          UI.field('Date entered', { value: '05 May 2026' }) +
+          UI.field('Date entered', { type:'date', value: '05 May 2026' }) +
         '</div>' +
         UI.banner('info', 'This becomes a line in the ledger, not a running total',
           'Every monthly entry is kept separately and the totals are worked out from them. ' +

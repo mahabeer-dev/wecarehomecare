@@ -63,7 +63,7 @@
           UI.field('Title', { span: true, value: 'Lighting assessment in the hallway' }) +
           UI.field('Attach to', { type: 'select', value: 'Quality item · Repeat falls — Maria Lopez' }) +
           UI.field('Assign to', { type: 'select', value: 'Renee Alcott' }) +
-          UI.field('Due date', { value: '14 May 2026' }) +
+          UI.field('Due date', { type:'date', value: '14 May 2026' }) +
           UI.field('Priority', { type: 'select', value: 'Medium' }) +
           UI.field('Notes', { type: 'textarea', span: true,
             value: 'Check lux levels in the hallway and on the stairs. Quote for replacement fittings if below standard.' }) +
