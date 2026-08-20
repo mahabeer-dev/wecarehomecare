@@ -21,7 +21,7 @@ var DB = (function () {
   /* Bump this whenever the shape of the data changes. A stored copy from an
      older build is discarded rather than merged, because a half-old, half-new
      store looks like working data and is not. */
-  var SCHEMA = 6;
+  var SCHEMA = 7;
 
   var state = null;
   var storageWorks = true;
@@ -69,6 +69,16 @@ var DB = (function () {
     var blank = fresh();
     for (var k in blank) if (!(k in state)) state[k] = blank[k];
     state.schema = SCHEMA;
+
+    /* Every row a screen can act on needs an id to act on it by. Rows written
+       before a collection had ids would otherwise render buttons that quietly
+       do nothing. */
+    ['clientDocs', 'creds', 'auths', 'incidents', 'qi'].forEach(function (coll) {
+      (state[coll] || []).forEach(function (r, n) {
+        if (!r.id) r.id = coll.charAt(0) + '-' + n + '-' + (r.client || r.caregiver || 'x');
+      });
+    });
+
     writeStore();
     return state;
   }
