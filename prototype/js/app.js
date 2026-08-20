@@ -221,15 +221,17 @@ var APP = (function () {
   var NURSE_ALLOWED = ['dash', 'tasks', 'calendar', 'clients', 'incidents', 'hosp', 'oversight', 'isp', 'reports'];
 
   function counts() {
-    var ag = S.role === 'superadmin' ? null : S.agency;
+    /* Always scoped to the agency currently being viewed. A Super Admin
+       switching in the header should see that agency's numbers, not both
+       added together. */
+    var ag = S.agency;
     var t = DATA.inAgency(DATA.TASKS, ag).filter(function (x) { return x.status === 'Overdue'; }).length;
     var cg = DATA.inAgency(DATA.CAREGIVERS, ag).filter(function (x) { return x.worst !== 'ok'; }).length;
     var inc = DATA.inAgency(DATA.INCIDENTS, ag).filter(function (x) { return x.status !== 'Closed'; }).length;
     var ov = DATA.inAgency(DATA.OVERSIGHT, ag).filter(function (x) { return x.status === 'Overdue' || x.status === 'Due soon'; }).length;
     var b = 0;
     DATA.inAgency(DATA.AUTHS, ag).forEach(function (a) {
-      var used = (a.id === 'a1' && S.vars.a1used != null) ? S.vars.a1used : a.used;
-      if (DATA.authCalc(a, used).pc >= 75) b++;
+      if (DATA.authCalc(a).pc >= 75) b++;
     });
     return { tasksOverdue: t, cgExpiring: cg, incOpen: inc, ovDue: ov, budgetAlerts: b };
   }
