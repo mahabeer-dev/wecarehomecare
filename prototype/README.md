@@ -11,7 +11,7 @@ no npm and no internet connection.
 To serve it locally instead:
 
 ```bash
-python3 -m http.server 8899 --directory prototype
+cd .. && python3 serve.py 8910
 ```
 
 ## Put it online
@@ -31,7 +31,8 @@ The dark bar along the bottom is the demo control bar. It is not part of the pro
 | ↺ | Reset everything back to the start |
 | Role | Switch between Super Admin, Admin staff and Nurse — the menu and dashboard change with it |
 | Flow | Pick a scripted walkthrough |
-| ▦ | Index of all 65 screens — jump anywhere |
+| ▦ | Index of all 72 screens — jump anywhere |
+| **Day one / In use** | Switch between a brand new empty system and one with records in it |
 | Next: … | Advance the script. The label always names the step it is about to show |
 
 You can also press **→** to advance, and **Esc** to close the screen index.
@@ -63,6 +64,18 @@ stat tiles — click any of them and you go somewhere. Nothing validates and not
 - **Text fields accept typing** and do not navigate.
 - **Loading screens move on by themselves** after a second or so, like real ones.
 
+### Seeing it empty, as the client receives it
+
+Press **Day one** in the black bar, or run the flow **● Day one — a brand new empty system**.
+
+Every list goes empty, a **Getting started** checklist appears at the top of the sidebar, and
+the dashboard admits it has nothing to show. The seven setup steps are the real order of
+operations: agencies → team → waiver programmes → reminder timings → import clients → import
+caregivers → add authorisations. Only after the last one does the system have any dates to
+watch.
+
+Press **In use** to put the demo records back.
+
 ## Where to start
 
 **Show a client this first:** the flow called **★ Maria Lopez — one client, one year**.
@@ -87,6 +100,7 @@ authorisation. It covers most of the system without explaining any of it.
 | Reports and exports | 4 | Builder → results → export → branded PDF |
 | What the client can change without us | 6 | Reminder timings, thresholds, checklists, intervals |
 | Empty, loading and audit | 4 | The states people forget to design |
+| ● Day one — a brand new empty system | 18 | First sign-in through to a working system |
 
 ## Structure
 

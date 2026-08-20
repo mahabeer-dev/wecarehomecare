@@ -11,6 +11,11 @@
     crumb: '<b>Caregivers</b>',
     render: function (S) {
       var rows = DATA.inAgency(DATA.CAREGIVERS, S.agency);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Caregivers</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'No staff records yet',body:'Add your caregivers so their licences, CPR and training can be tracked. None of them will get a login — these are compliance records only.',icon:'badge',actions:[{label:'Import from Excel',primary:true,icon:'upload',goto:'clients.import'},{label:'Add one by hand',icon:'plus',goto:'cg.detail'}]}) + '</div>';
+
       var exp = rows.filter(function (r) { return r.worst === 'expired'; }).length;
       var soon = rows.filter(function (r) { return r.worst === 'soon'; }).length;
 

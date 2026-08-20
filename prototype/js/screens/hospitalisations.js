@@ -9,6 +9,11 @@
     crumb: '<b>Hospitalisations</b>',
     render: function (S) {
       var rows = DATA.inAgency(DATA.HOSPS, S.agency);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Hospitalisations</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'Nobody in hospital',body:'When a client is admitted or visits the ER, record it here. The nurse follow-up visit after discharge is created for you.',icon:'hosp',actions:[{label:'Record an admission',primary:true,icon:'plus',goto:'hosp.new'}]}) + '</div>';
+
 
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt"><h1>Hospitalisations</h1>' +

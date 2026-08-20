@@ -350,7 +350,13 @@ var DATA = (function () {
     return null;
   }
 
+  /* Day-one mode: the system as the client receives it, with nothing in it yet. */
+  var EMPTY = false;
+  function setEmpty(v) { EMPTY = !!v; }
+  function isEmpty() { return EMPTY; }
+
   function inAgency(list, agency) {
+    if (EMPTY) return [];
     if (!agency) return list.slice();
     var out = [];
     for (var i = 0; i < list.length; i++) if (list[i].agency === agency) out.push(list[i]);
@@ -363,6 +369,7 @@ var DATA = (function () {
     AUTHS: AUTHS, USAGE: USAGE, INCIDENTS: INCIDENTS, HOSPS: HOSPS,
     QI: QI, ISP: ISP, OVERSIGHT: OVERSIGHT, TASKS: TASKS,
     CHECKLIST: CHECKLIST, AUDIT: AUDIT,
+    setEmpty: setEmpty, isEmpty: isEmpty,
     IMPORT_ROWS: IMPORT_ROWS, IMPORT_ERRORS: IMPORT_ERRORS,
     money: money, authCalc: authCalc, byId: byId, inAgency: inAgency
   };

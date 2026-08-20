@@ -20,7 +20,7 @@ internet connection required.
 To serve it instead:
 
 ```bash
-python3 -m http.server 8899 --directory prototype
+python3 serve.py 8910
 ```
 
 See [`prototype/README.md`](prototype/README.md) for how to drive it and what each flow shows,

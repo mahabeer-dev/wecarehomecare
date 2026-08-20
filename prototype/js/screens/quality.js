@@ -9,6 +9,11 @@
     crumb: '<b>Quality</b>',
     render: function (S) {
       var rows = DATA.inAgency(DATA.QI, S.agency);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Quality Improvement</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'No quality items open',body:'Items appear here when a pattern shows up — more than two incidents or hospital stays for one client in a month — or when a manager opens one by hand.',icon:'star',actions:[{label:'Open a quality item',primary:true,icon:'plus',goto:'qi.detail'}]}) + '</div>';
+
 
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt"><h1>Quality Improvement</h1>' +

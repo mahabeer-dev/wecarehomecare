@@ -9,6 +9,11 @@
     crumb: '<b>Reviews</b>',
     render: function (S) {
       var rows = DATA.inAgency(DATA.OVERSIGHT, S.agency);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Reviews</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'No reviews scheduled',body:'Supervisor visits, assessments, HRST, plan reviews and DDP inspections appear here once clients exist and their intervals are set.',icon:'shield',actions:[{label:'Set visit intervals',primary:true,goto:'set.intervals'}]}) + '</div>';
+
       var over = rows.filter(function (r) { return r.status === 'Overdue'; }).length;
       var soon = rows.filter(function (r) { return r.status === 'Due soon'; }).length;
 

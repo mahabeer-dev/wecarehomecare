@@ -7,6 +7,11 @@
   function list(S) {
     var ag = S.role === 'superadmin' ? S.agency : S.agency;
     var rows = DATA.inAgency(DATA.CLIENTS, ag);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Clients</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'No clients yet',body:'Bring your caseload in from a spreadsheet, or add the first client by hand. Everything else in the system hangs off a client.',icon:'people',actions:[{label:'Import from Excel',primary:true,icon:'upload',goto:'clients.import'},{label:'Add one by hand',icon:'plus',goto:'clients.import'}],note:'Most agencies import. It takes one file and about two minutes.'}) + '</div>';
+
 
     var h = '<div class="page">';
     h += '<div class="page-head"><span class="ph-txt">' +

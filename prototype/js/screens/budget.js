@@ -14,6 +14,11 @@
     crumb: '<b>Authorisations</b>',
     render: function (S) {
       var rows = DATA.inAgency(DATA.AUTHS, S.agency);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Authorisations</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'No authorisations yet',body:'Add an authorisation for a client and the system starts tracking units, money and utilisation for you. Alerts fire on their own at 75, 90 and 100 per cent.',icon:'money',actions:[{label:'Add an authorisation',primary:true,icon:'plus',goto:'budget.setup'}],note:'You need at least one client first.'}) + '</div>';
+
       var alerts = rows.filter(function (a) { return calcFor(S, a).pc >= 75; }).length;
 
       var h = '<div class="page">';

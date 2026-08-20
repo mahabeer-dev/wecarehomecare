@@ -93,3 +93,33 @@ anything except the password box. The dates are fixed around May 2026 so the ale
 look alive.
 
 Every client, caregiver and clinical event is invented.
+
+---
+
+## Round 4 — Day one, as the client receives it
+
+Press **Day one** in the black bar (or pick the flow *● Day one — a brand new empty system*).
+
+This is the platform with **nothing in it** — no clients, no staff, no authorisations, no
+history. It answers the question "what does Dawn actually do first?"
+
+- [ ] The dashboard has **no numbers**, just dashes, and says so plainly
+- [ ] A **Getting started** item appears at the top of the sidebar with a count of what is left
+- [ ] Every module — Clients, Caregivers, Authorisations, Incidents, Tasks, Quality, Reviews —
+      shows its own empty state explaining what it is for and what to do first
+- [ ] The setup list runs in dependency order. Steps you have not reached are greyed out:
+
+      1. Name your agencies
+      2. Invite your team
+      3. Add your waiver programmes  ← the one only Dawn can do
+      4. Check the reminder timings
+      5. Import your clients
+      6. Import your caregivers
+      7. Add authorisations
+
+- [ ] Work down it. After the last step, **Setup complete** lists what the system now does on
+      its own every night without being asked.
+- [ ] Press **In use** to put the demo records back.
+
+**The point of this round:** step 3 is the only part nobody can do for her. Everything else is
+a spreadsheet or a default. Worth knowing when planning the handover.

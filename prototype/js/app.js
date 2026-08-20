@@ -44,6 +44,7 @@ var APP = (function () {
     S.vars = {};
     S.overlay = false;
     S.toasts = [];
+    DATA.setEmpty(false);
     render();
   }
 
@@ -87,6 +88,8 @@ var APP = (function () {
     if (!st) return;
     if (st.role) S.role = st.role;
     if (st.agency) S.agency = st.agency;
+    if (st.empty !== undefined) DATA.setEmpty(st.empty);
+    if (st.setupStep !== undefined) S.vars.setupStep = st.setupStep;
     if (st.patch) for (var k in st.patch) S.vars[k] = st.patch[k];
     if (st.toast) toast(st.toast.kind || 'info', st.toast.title, st.toast.body);
     S.screen = st.screen;
@@ -235,6 +238,14 @@ var APP = (function () {
       '<span class="bm-txt"><span class="bm-1">We Care Home Care</span>' +
       '<span class="bm-2">Operations</span></span></div>';
 
+    if (DATA.isEmpty()) {
+      h += '<div class="nav-label">Set up</div>' +
+           '<button class="nav-item' + (def.nav === 'setup' ? ' is-active' : '') + '" data-goto="setup.checklist">' +
+           UI.icon('check') + '<span>Getting started</span>' +
+           '<span class="pill" style="background:var(--g-300);color:#3A2A05">' +
+             (7 - Math.min(7, S.vars.setupStep || 0)) + '</span></button>';
+    }
+
     for (var i = 0; i < NAV.length; i++) {
       var n = NAV[i];
       if (n.group) { h += '<div class="nav-label">' + n.group + '</div>'; continue; }
@@ -308,6 +319,9 @@ var APP = (function () {
       '<select class="chrome-sel" id="c-role" title="Switch role">' + roleOpts + '</select>' +
       '<select class="chrome-sel" id="c-flow" title="Switch flow">' + opts + '</select>' +
       '<button class="chrome-btn" id="c-index" title="All screens">' + UI.icon('grid') + '</button>' +
+      '<button class="chrome-btn" id="c-empty" title="Toggle between a system in use and a brand new empty one"' +
+        (DATA.isEmpty() ? ' style="background:var(--g-300);color:#3A2A05;font-weight:650"' : '') + '>' +
+        (DATA.isEmpty() ? 'Day one' : 'In use') + '</button>' +
       (f ? '<span class="chrome-step">' + (S.step + 1) + ' / ' + f.steps.length + '</span>' : '') +
       '<span class="chrome-div"></span>' +
       '<button class="chrome-btn chrome-btn--next" id="c-next"' + (atEnd ? ' disabled' : '') + '>' +
@@ -332,6 +346,7 @@ var APP = (function () {
 
   var GROUPS = [
     { k: 'auth',    t: 'Sign in' },
+    { k: 'setup',   t: 'Day one — setting up' },
     { k: 'dash',    t: 'Dashboard' },
     { k: 'clients', t: 'Clients' },
     { k: 'cg',      t: 'Caregivers' },
@@ -383,6 +398,14 @@ var APP = (function () {
     'auth.loading': 'dash.home',
     'auth.agency': 'dash.home',
     'auth.denied': 'dash.home',
+
+    'setup.welcome': 'setup.checklist',
+    'setup.checklist': 'setup.agencies',
+    'setup.agencies': 'setup.team',
+    'setup.team': 'setup.programmes',
+    'setup.programmes': 'set.reminders',
+    'setup.dash': 'setup.checklist',
+    'setup.done': 'dash.home',
 
     'dash.home': 'clients.list',
     'dash.empty': 'dash.home',
@@ -474,11 +497,22 @@ var APP = (function () {
     if (!t.closest) return;
 
     /* --- demo chrome --- */
-    var chromeBtn = t.closest('#c-reset, #c-next, #c-index, #ovl-x');
+    var chromeBtn = t.closest('#c-reset, #c-next, #c-index, #c-empty, #ovl-x');
     if (chromeBtn) {
       if (chromeBtn.id === 'c-reset') reset();
       else if (chromeBtn.id === 'c-next') next();
       else if (chromeBtn.id === 'c-index') { S.overlay = !S.overlay; paintOverlay(); }
+      else if (chromeBtn.id === 'c-empty') {
+        var nowEmpty = !DATA.isEmpty();
+        DATA.setEmpty(nowEmpty);
+        S.flow = null;
+        S.vars.setupStep = nowEmpty ? 0 : 7;
+        S.role = 'superadmin'; S.agency = 'ga';
+        S.screen = nowEmpty ? 'setup.welcome' : 'dash.home';
+        toast('info', nowEmpty ? 'Day one — empty system' : 'A system in use',
+          nowEmpty ? 'Exactly what the client receives before any data exists.' : 'Populated with demo records again.');
+        render();
+      }
       else if (chromeBtn.id === 'ovl-x') { S.overlay = false; paintOverlay(); }
       return;
     }

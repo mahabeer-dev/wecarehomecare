@@ -160,6 +160,21 @@ var UI = (function () {
     return '<div class="empty">' + icon('check', 'ei') + '<b>' + esc(title) + '</b><span>' + esc(sub || '') + '</span></div>';
   }
 
+  /* A whole page saying "there is nothing here yet, here is how to start". */
+  function emptyModule(o) {
+    var acts = (o.actions || []).map(function (a) {
+      return btn(a.label, { cls: a.primary ? 'btn--primary' : '', icon: a.icon, goto: a.goto });
+    }).join('');
+    return '<div class="card"><div class="card-body" style="padding:0">' +
+      '<div class="empty" style="padding:64px 24px">' +
+        icon(o.icon || 'plus', 'ei') +
+        '<b style="font-size:17px">' + esc(o.title) + '</b>' +
+        '<span style="max-width:44ch">' + esc(o.body) + '</span>' +
+        (acts ? '<div class="row" style="justify-content:center;margin-top:12px">' + acts + '</div>' : '') +
+        (o.note ? '<span class="small muted" style="margin-top:10px;max-width:46ch">' + esc(o.note) + '</span>' : '') +
+      '</div></div></div>';
+  }
+
   function emrLink(name) {
     return '<button class="emrlink">' + icon('ext') + 'Open ' + esc(name) + ' in the EMR</button>';
   }
@@ -167,6 +182,6 @@ var UI = (function () {
   return {
     icon: icon, esc: esc, initials: initials, badge: badge, stat: stat, meter: meter,
     banner: banner, btn: btn, field: field, kv: kv, tlItem: tlItem, bars: bars,
-    empty: empty, emrLink: emrLink
+    empty: empty, emrLink: emrLink, emptyModule: emptyModule
   };
 })();

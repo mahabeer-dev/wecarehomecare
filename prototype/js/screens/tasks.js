@@ -9,6 +9,11 @@
     crumb: '<b>Tasks</b>',
     render: function (S) {
       var rows = DATA.inAgency(DATA.TASKS, S.agency);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Tasks</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'Nothing on the list',body:'Tasks can be created by hand, or raised automatically by an incident, a review finding or an expiring document.',icon:'check',actions:[{label:'Create a task',primary:true,icon:'plus',goto:'tasks.new'}]}) + '</div>';
+
       var od = rows.filter(function (t) { return t.status === 'Overdue'; }).length;
 
       var h = '<div class="page">';

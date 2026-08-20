@@ -9,6 +9,11 @@
     crumb: '<b>Incidents</b>',
     render: function (S) {
       var rows = DATA.inAgency(DATA.INCIDENTS, S.agency);
+      if (!rows.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Incidents</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({title:'No incidents recorded',body:'A good sign. When something happens — a fall, a medication error, an allegation — record it here and the follow-up is chased automatically.',icon:'warn',actions:[{label:'Record an incident',primary:true,icon:'plus',goto:'inc.new'}]}) + '</div>';
+
       var open = rows.filter(function (r) { return r.status !== 'Closed'; }).length;
 
       var h = '<div class="page">';
