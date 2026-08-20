@@ -31,6 +31,42 @@
     return el ? String(el.value || '').trim() : '';
   }
 
+  var ACCOUNTS = [
+    { key:'owner', email:'dawn.bostock@wecarehomecare.com',  name:'Dawn Bostock',  title:'Owner · sees both agencies',       role:'superadmin', agency:'ga', cls:'' },
+    { key:'admin', email:'renee.alcott@wecarehomecare.com',  name:'Renee Alcott',  title:'Office Manager · Georgia only',    role:'admin',      agency:'ga', cls:'c2' },
+    { key:'nurse', email:'yvonne.pryce@wecarehomecare.com',  name:'Yvonne Pryce',  title:'Registered Nurse · Georgia only',  role:'nurse',      agency:'ga', cls:'c3' }
+  ];
+
+  function accountFor(key) {
+    for (var i = 0; i < ACCOUNTS.length; i++) if (ACCOUNTS[i].key === key) return ACCOUNTS[i];
+    return ACCOUNTS[1];
+  }
+
+  /* exposed so the router can apply the chosen account on a successful sign-in */
+  window.AUTH_ACCOUNTS = { list: ACCOUNTS, get: accountFor };
+
+  function picker(S) {
+    var sel = S.vars.loginAs || 'admin';
+    var h = '<div class="field"><label>Sign in as</label>' +
+            '<div style="display:flex;flex-direction:column;gap:6px">';
+    ACCOUNTS.forEach(function (a) {
+      var on = a.key === sel;
+      h += '<button class="card" data-login-as="' + a.key + '" ' +
+           'style="padding:10px 12px;text-align:left;cursor:pointer;' +
+           (on ? 'border-color:var(--p-500);box-shadow:0 0 0 3px var(--p-100)' : '') + '">' +
+           '<span class="row" style="gap:10px">' +
+             '<span class="ava-sm ' + a.cls + '">' + UI.esc(UI.initials(a.name)) + '</span>' +
+             '<span style="display:flex;flex-direction:column;min-width:0">' +
+               '<b class="small">' + UI.esc(a.name) + '</b>' +
+               '<span class="small muted">' + UI.esc(a.title) + '</span>' +
+             '</span>' +
+             '<span class="spacer"></span>' +
+             (on ? UI.badge('Selected', 'plum') : '') +
+           '</span></button>';
+    });
+    return h + '</div><span class="hint">Three real roles. Sign out from the sidebar to swap.</span></div>';
+  }
+
   screen('auth.login', {
     title: 'Sign in',
     chrome: false,
@@ -42,13 +78,15 @@
       S.vars.authTried = pw;
       return 'auth.error';
     },
-    render: function () {
+    render: function (S) {
+      var a = accountFor(S.vars.loginAs || 'admin');
       return form(
         '<span class="eyebrow-m">We Care Home Care</span>' +
         '<h1 style="margin:0;font-size:26px;font-weight:650;letter-spacing:-.02em">Sign in</h1>' +
         '<p class="small muted" style="margin:0 0 4px">Administration and clinical staff only. ' +
         'Caregivers do not have accounts.</p>' +
-        UI.field('Work email', { type: 'email', value: 'renee.alcott@wecarehomecare.com' }) +
+        picker(S) +
+        UI.field('Work email', { type: 'email', value: a.email }) +
         UI.field('Password', { type: 'password', id: 'pw', value: '', placeholder: 'Enter your password' }) +
         '<p class="small muted" style="margin:-6px 0 0">Demo password: <b class="mono">' + DEMO_PW + '</b></p>' +
         UI.btn('Sign in', { cls: 'btn--primary btn--lg btn--block', icon: 'arrow' }) +
@@ -64,12 +102,14 @@
     intercept: function (S) { S.vars.authErr = null; return 'auth.loading'; },
     render: function (S) {
       var empty = S.vars.authErr === 'empty';
+      var a = accountFor(S.vars.loginAs || 'admin');
       return form(
         '<span class="eyebrow-m">We Care Home Care</span>' +
         '<h1 style="margin:0;font-size:26px;font-weight:650;letter-spacing:-.02em">Sign in</h1>' +
         '<p class="small muted" style="margin:0 0 4px">Administration and clinical staff only. ' +
         'Caregivers do not have accounts.</p>' +
-        UI.field('Work email', { type: 'email', value: 'renee.alcott@wecarehomecare.com' }) +
+        picker(S) +
+        UI.field('Work email', { type: 'email', value: a.email }) +
         UI.field('Password', {
           type: 'password', id: 'pw', bad: true,
           value: empty ? '' : (S.vars.authTried || 'wrongpass'),

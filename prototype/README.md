@@ -36,6 +36,19 @@ The dark bar along the bottom is the demo control bar. It is not part of the pro
 
 You can also press **→** to advance, and **Esc** to close the screen index.
 
+### Testing as a real user
+
+Pick one of the three accounts on the sign-in screen, type the demo password `wechc-2026`,
+and **Sign out** from the bottom of the sidebar to swap. [`TESTING.md`](TESTING.md) is a
+role-by-role script — Owner, then Office Manager, then Nurse — with what to expect at each
+step.
+
+| Account | Role | Sees |
+| --- | --- | --- |
+| Dawn Bostock | Super Admin | Everything, both agencies, Settings, Audit trail |
+| Renee Alcott | Admin staff | Georgia only, no Settings |
+| Yvonne Pryce | Nurse | Georgia only, own visits; no Caregivers, Authorisations or Quality |
+
 ### Clicking
 
 **Everything clickable moves you forward.** Buttons, table rows, cards, tabs, filter chips,

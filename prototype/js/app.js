@@ -47,6 +47,14 @@ var APP = (function () {
     render();
   }
 
+  /* Sign-in succeeded: become whoever was picked on the login screen. */
+  function applyAccount() {
+    if (!window.AUTH_ACCOUNTS) return;
+    var a = window.AUTH_ACCOUNTS.get(S.vars.loginAs || 'admin');
+    S.role = a.role;
+    S.agency = a.agency || 'ga';
+  }
+
   /* ---------------- navigation ---------------- */
 
   function go(id, opts) {
@@ -91,6 +99,7 @@ var APP = (function () {
     var def = SCREENS[S.screen];
     if (def && def.intercept) {
       var chosen = def.intercept(S, null);
+      if (chosen === 'auth.loading') applyAccount();
       if (chosen && SCREENS[chosen]) {
         if (f && jumpFlowTo(chosen)) { window.scrollTo(0, 0); render(); return; }
         if (!f) { go(chosen); return; }
@@ -240,9 +249,13 @@ var APP = (function () {
            '</button>';
     }
 
-    h += '<div class="nav-foot"><span class="who">' + UI.esc(u.name) + '</span>' +
+    h += '<div class="nav-foot">' +
+         '<span class="who">' + UI.esc(u.name) + '</span>' +
          '<span class="whorole">' + DATA.ROLE_LABEL[S.role] +
-         (S.role === 'superadmin' ? ' · both agencies' : ' · ' + agency().short) + '</span></div>';
+         (S.role === 'superadmin' ? ' · both agencies' : ' · ' + agency().short) + '</span>' +
+         '<button class="nav-item" data-signout style="margin-top:8px;padding:6px 9px">' +
+           UI.icon('reset') + '<span>Sign out</span>' +
+         '</button></div>';
 
     return h + '</aside>';
   }
@@ -484,6 +497,25 @@ var APP = (function () {
     /* --- typing fields do nothing --- */
     if (t.closest('[data-inert]')) return;
 
+    /* --- choosing which account to sign in as --- */
+    var pick = t.closest('[data-login-as]');
+    if (pick) {
+      S.vars.loginAs = pick.getAttribute('data-login-as');
+      render();
+      return;
+    }
+
+    /* --- sign out --- */
+    if (t.closest('[data-signout]')) {
+      var who = S.vars.loginAs || 'admin';
+      S.flow = null; S.step = 0; S.vars = { loginAs: who };
+      S.screen = 'auth.login';
+      toast('info', 'Signed out', 'Pick another account to sign in as.');
+      window.scrollTo(0, 0);
+      render();
+      return;
+    }
+
     /* --- agency switch --- */
     var ag = t.closest('[data-agency]');
     if (ag) {
@@ -512,6 +544,7 @@ var APP = (function () {
     var def = SCREENS[S.screen];
     if (def && def.intercept) {
       var chosen = def.intercept(S, adv);
+      if (chosen === 'auth.loading') applyAccount();
       if (chosen && SCREENS[chosen]) {
         if (S.flow && jumpFlowTo(chosen)) { window.scrollTo(0, 0); render(); }
         else { S.flow = null; go(chosen); }

@@ -23,7 +23,11 @@ To serve it instead:
 python3 -m http.server 8899 --directory prototype
 ```
 
-See [`prototype/README.md`](prototype/README.md) for how to drive it and what each flow shows.
+See [`prototype/README.md`](prototype/README.md) for how to drive it and what each flow shows,
+and [`prototype/TESTING.md`](prototype/TESTING.md) for a role-by-role test script.
+
+Three demo accounts sign in on the front screen — Owner, Office Manager and Nurse — with the
+password `wechc-2026`. Sign out from the sidebar to swap between them.
 
 **Start with the flow called “★ Maria Lopez — one client, one year”.** It follows a single
 client from their import in January through a fall, a hospital stay, an automatically raised
