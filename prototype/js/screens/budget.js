@@ -78,7 +78,7 @@
           UI.field('Rate per unit', { value: '$6.25', hint: 'Total value: $12,500.00' }) +
         '</div></div>' +
         '<div class="card-foot">' + UI.btn('Cancel', { goto: 'budget.list' }) + '<span class="spacer"></span>' +
-        UI.btn('Save authorisation', { cls: 'btn--primary', icon: 'check', goto: 'budget.detail' }) + '</div></div>' +
+        '<button class="btn btn--primary" data-do="setup.finish" data-goto="setup.done">' + UI.icon('check') + 'Save authorisation</button>' + '</div></div>' +
 
         UI.banner('info', 'A client can hold several authorisations at once',
           'Maria also has a Respite authorisation at a different rate. Each one is tracked and alerted on separately.') +
@@ -124,7 +124,8 @@
 
   function detail(S, opts) {
     opts = opts || {};
-    var a = DATA.byId(DATA.AUTHS, 'a1');
+    var a = DATA.byId(DATA.AUTHS, 'a1') || DATA.AUTHS[0];
+    if (!a) return UI.noRecord('authorisations yet', 'Back to authorisations', 'budget.list');
     var c = calcFor(S, a);
 
     var h = '<div class="page">';
@@ -248,7 +249,8 @@
     crumb: 'Authorisations <span>›</span> <b>Maria Lopez</b>',
     render: function (S) {
       S.vars.a1used = 1960;
-      var a = DATA.byId(DATA.AUTHS, 'a1');
+      var a = DATA.byId(DATA.AUTHS, 'a1') || DATA.AUTHS[0];
+      if (!a) return UI.noRecord('authorisations yet', 'Back to authorisations', 'budget.list');
       var c = DATA.authCalc(a, 1960);
 
       var h = '<div class="page page--narrow">';

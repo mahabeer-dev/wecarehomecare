@@ -37,18 +37,24 @@ The dark bar along the bottom is the demo control bar. It is not part of the pro
 
 You can also press **→** to advance, and **Esc** to close the screen index.
 
-### Testing as a real user
+### It starts as a brand new install
 
-Pick one of the three accounts on the sign-in screen, type the demo password `wechc-2026`,
-and **Sign out** from the bottom of the sidebar to swap. [`TESTING.md`](TESTING.md) is a
-role-by-role script — Owner, then Office Manager, then Nurse — with what to expect at each
-step.
+**On a fresh open there is exactly one account — Dawn's — and nothing else.** No agencies, no
+clients, no staff, no history. That is what gets handed over on day one.
 
-| Account | Role | Sees |
-| --- | --- | --- |
-| Dawn Bostock | Super Admin | Everything, both agencies, Settings, Audit trail |
-| Renee Alcott | Admin staff | Georgia only, no Settings |
-| Yvonne Pryce | Nurse | Georgia only, own visits; no Caregivers, Authorisations or Quality |
+Renee and Yvonne do not exist until Dawn creates them in setup step 2. Until then the sign-in
+screen offers one account and says so.
+
+Everything created is **saved in the browser** and survives a refresh, a close and a reopen.
+There is no server.
+
+| Button in the black bar | What it does |
+| --- | --- |
+| **Start again** | Wipes back to a brand new install — one account, nothing else |
+| **Load demo data** | Fills it with a populated agency, for showing what it looks like in use |
+
+Demo password for every account: `wechc-2026`.
+[`TESTING.md`](TESTING.md) is a role-by-role script with what to expect at each step.
 
 ### Clicking
 
@@ -64,17 +70,21 @@ stat tiles — click any of them and you go somewhere. Nothing validates and not
 - **Text fields accept typing** and do not navigate.
 - **Loading screens move on by themselves** after a second or so, like real ones.
 
-### Seeing it empty, as the client receives it
+### The seven setup steps
 
-Press **Day one** in the black bar, or run the flow **● Day one — a brand new empty system**.
+A **Getting started** checklist sits at the top of the sidebar until it is finished. The order
+is real — each step needs the one before it:
 
-Every list goes empty, a **Getting started** checklist appears at the top of the sidebar, and
-the dashboard admits it has nothing to show. The seven setup steps are the real order of
-operations: agencies → team → waiver programmes → reminder timings → import clients → import
-caregivers → add authorisations. Only after the last one does the system have any dates to
-watch.
+1. **Name your agencies** — Georgia and Mississippi
+2. **Invite your team** — this is where Renee's and Yvonne's accounts come into existence
+3. **Add your waiver programmes** — and the documents each requires
+4. **Check the reminder timings** — defaults ship with the product
+5. **Import your clients** — from a spreadsheet
+6. **Import your caregivers** — with their licences
+7. **Add authorisations** — and only now does budget tracking begin
 
-Press **In use** to put the demo records back.
+Every one of those writes to the store. Refresh after any step and your progress is still
+there. Step 2 is the answer to "how do the other accounts get created" — Dawn creates them.
 
 ## Where to start
 
@@ -100,7 +110,7 @@ authorisation. It covers most of the system without explaining any of it.
 | Reports and exports | 4 | Builder → results → export → branded PDF |
 | What the client can change without us | 6 | Reminder timings, thresholds, checklists, intervals |
 | Empty, loading and audit | 4 | The states people forget to design |
-| ● Day one — a brand new empty system | 18 | First sign-in through to a working system |
+| ● Day one — a brand new empty system | 18 | First sign-in through to a working system, writing as it goes |
 
 ## Structure
 
@@ -109,7 +119,10 @@ index.html          loads everything in order
 css/tokens.css      palette, type, spacing
 css/app.css         shell, sidebar, topbar, demo chrome
 css/components.css  cards, tables, forms, badges, meters
-js/data.js          all demo data in one place
+js/seed.js          a brand new install — one account and the defaults
+js/demo.js          the populated demo agency, loaded only on request
+js/db.js            the store: localStorage, survives a refresh
+js/data.js          a read-only view over the store
 js/ui.js            icons and render primitives
 js/app.js           screen registry, router, step machine, click handling
 js/screens/*.js     one file per module

@@ -61,7 +61,8 @@
     title: 'Quality item — repeat falls', nav: 'qi',
     crumb: 'Quality <span>›</span> <b>Repeat falls — Maria Lopez</b>',
     render: function () {
-      var q = DATA.byId(DATA.QI, 'q1');
+      var q = DATA.byId(DATA.QI, 'q1') || DATA.QI[0];
+      if (!q) return UI.noRecord('quality items open', 'Back to quality', 'qi.list');
 
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt">' +

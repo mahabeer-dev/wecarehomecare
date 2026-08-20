@@ -38,15 +38,42 @@
   ];
 
   function accountFor(key) {
-    for (var i = 0; i < ACCOUNTS.length; i++) if (ACCOUNTS[i].key === key) return ACCOUNTS[i];
-    return ACCOUNTS[1];
+    var live = available();
+    for (var i = 0; i < live.length; i++) if (live[i].key === key) return live[i];
+    return live[0] || ACCOUNTS[0];
   }
 
   /* exposed so the router can apply the chosen account on a successful sign-in */
-  window.AUTH_ACCOUNTS = { list: ACCOUNTS, get: accountFor };
+  window.AUTH_ACCOUNTS = { get: accountFor, available: available };
+
+  /* Only accounts that actually exist can be signed into. On a brand new
+     install that is one person. */
+  function available() {
+    var byRole = {};
+    DB.all('users').forEach(function (u) { byRole[u.role] = u; });
+    return ACCOUNTS.filter(function (a) { return !!byRole[a.role]; })
+                   .map(function (a) {
+                     var u = byRole[a.role];
+                     return { key:a.key, cls:a.cls, role:a.role, agency:a.agency,
+                              email:u.email, name:u.name, title:u.title +
+                                (u.role === 'superadmin' ? ' · sees both agencies'
+                                 : u.agency ? ' · ' + ((DATA.AGENCIES[u.agency]||{}).short || u.agency) + ' only' : '') };
+                   });
+  }
 
   function picker(S) {
-    var sel = S.vars.loginAs || 'admin';
+    var ACCOUNTS = available();
+    var sel = S.vars.loginAs || (ACCOUNTS[0] && ACCOUNTS[0].key) || 'owner';
+    if (ACCOUNTS.length === 1) {
+      var only = ACCOUNTS[0];
+      return '<div class="field"><label>Signing in as</label>' +
+        '<div class="card" style="padding:10px 12px"><span class="row" style="gap:10px">' +
+          '<span class="ava-sm">' + UI.esc(UI.initials(only.name)) + '</span>' +
+          '<span style="display:flex;flex-direction:column"><b class="small">' + UI.esc(only.name) + '</b>' +
+          '<span class="small muted">' + UI.esc(only.title) + '</span></span>' +
+        '</span></div>' +
+        '<span class="hint">This is the only account that exists. You create the others once you are in.</span></div>';
+    }
     var h = '<div class="field"><label>Sign in as</label>' +
             '<div style="display:flex;flex-direction:column;gap:6px">';
     ACCOUNTS.forEach(function (a) {

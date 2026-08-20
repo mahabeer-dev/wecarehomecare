@@ -28,14 +28,16 @@
       h += '<div class="card"><div class="card-head"><h3>Accounts</h3><span class="spacer"></span>' +
         UI.btn('Invite someone', { cls: 'btn--primary btn--sm', icon: 'plus' }) + '</div>' +
         '<div class="tbl-wrap"><table class="tbl" style="min-width:820px"><thead><tr>' +
-        '<th>Person</th><th>Role</th><th>Agency</th><th>Last seen</th><th>Status</th></tr></thead><tbody>' +
-        u('Dawn Bostock', 'Owner', 'Super Admin', 'Both', 'Today, 08:12', 'Active') +
-        u('Renee Alcott', 'Office Manager', 'Admin staff', 'Georgia', 'Today, 07:55', 'Active') +
-        u('Yvonne Pryce', 'Registered Nurse', 'Nurse', 'Georgia', 'Yesterday, 16:40', 'Active') +
-        u('Patrice Hollins', 'Office Manager', 'Admin staff', 'Mississippi', 'Today, 09:02', 'Active') +
-        u('Gene Marbury', 'Office Assistant', 'Admin staff', 'Mississippi', '12 Mar 2026', 'Suspended') +
+        '<th>Person</th><th>Role</th><th>Agency</th><th>Email</th><th>Status</th></tr></thead><tbody>' +
+        DATA.USERLIST.map(function (x) {
+          var ag = x.agency ? (DATA.AGENCIES[x.agency] || {}).short || x.agency : 'Both';
+          return u(x.name, x.title, DATA.ROLE_LABEL[x.role], ag, x.email, x.status);
+        }).join('') +
         '</tbody></table></div>' +
-        '<div class="card-foot"><span class="small muted">5 accounts. Caregivers are never given accounts — they exist only as compliance records.</span></div></div>';
+        '<div class="card-foot"><span class="small muted">' + DATA.USERLIST.length +
+        (DATA.USERLIST.length === 1 ? ' account. This is the only one that exists — you create the rest.'
+                                    : ' accounts. Caregivers are never given accounts; they exist only as compliance records.') +
+        '</span></div></div>';
 
       h += '<div class="card"><div class="card-head"><h3>What each role can do</h3></div>' +
         '<div class="tbl-wrap"><table class="tbl" style="min-width:760px"><thead><tr>' +
@@ -53,11 +55,12 @@
   });
 
   function u(name, title, role, agency, seen, status) {
+    title = title || '';
     return '<tr data-row><td><span class="rowmain"><span class="ava-sm">' + UI.esc(UI.initials(name)) + '</span>' +
       '<span><span class="nm">' + UI.esc(name) + '</span><br><span class="sub2">' + UI.esc(title) + '</span></span></span></td>' +
       '<td>' + UI.badge(role, role === 'Super Admin' ? 'plum' : 'neutral') + '</td>' +
-      '<td class="small">' + UI.esc(agency) + '</td><td class="small muted">' + UI.esc(seen) + '</td>' +
-      '<td>' + UI.badge(status === 'Active' ? 'Active' : 'Not applicable') + '</td></tr>';
+      '<td class="small">' + UI.esc(agency) + '</td><td class="small muted mono" style="font-size:11.5px">' + UI.esc(seen) + '</td>' +
+      '<td>' + UI.badge(status || 'Active', status === 'Invited' ? 'warn' : 'ok') + '</td></tr>';
   }
 
   function perm(area, a, b, c) {
@@ -72,10 +75,21 @@
     render: function () {
       var h = '<div class="page">' + head('Agencies', 'Adding a third one later must not need a rebuild') + tabs('Agencies');
 
-      h += '<div class="grid grid-2">' +
-        ag('Georgia', 'GA', '5 clients · 6 caregivers', 'NOW, COMP') +
-        ag('Mississippi', 'MS', '3 clients · 4 caregivers', 'IDD Community Supports') +
-      '</div>';
+      var list = DATA.USERLIST && Object.keys(DATA.AGENCIES);
+      if (!list.length) {
+        h += UI.emptyModule({ icon:'people', title:'No agencies yet',
+          body:'Create your first agency before anything else. Every record in the system belongs to exactly one.',
+          actions:[{ label:'Set up your agencies', primary:true, icon:'plus', goto:'setup.agencies' }] });
+        return h + '</div>';
+      }
+      h += '<div class="grid grid-2">' + list.map(function (id) {
+        var a = DATA.AGENCIES[id];
+        var progs = DATA.PROGRAMMES.filter(function (p) { return p.agency === id; })
+                        .map(function (p) { return p.name; }).join(', ') || 'none yet';
+        return ag(a.short, a.abbr,
+          DATA.inAgency(DATA.CLIENTS, id).length + ' clients · ' +
+          DATA.inAgency(DATA.CAREGIVERS, id).length + ' caregivers', progs);
+      }).join('') + '</div>';
 
       h += '<div class="card"><div class="card-body" style="align-items:center;text-align:center;padding:32px;gap:10px">' +
         UI.icon('plus', 'ei') + '<b>Add another agency</b>' +
@@ -113,7 +127,13 @@
         rem('Monthly ISP entries', '5 days before month end', 'On the 7th', '7 days', true) +
         rem('Tasks', '7 days', 'Immediately', '7 days', true) +
         '</tbody></table></div>' +
-        '<div class="card-foot"><span class="small muted">Changing these takes effect on the next nightly run. No developer needed.</span></div></div>';
+        '<div class="card-foot"><span class="small muted">Changing these takes effect on the next nightly run. No developer needed.</span>' +
+        '<span class="spacer"></span>' +
+        (DB.setupStep() < 7
+          ? '<button class="btn btn--primary" data-do="setup.reminders" data-goto="setup.dash">' +
+            UI.icon('arrow') + 'These are fine — continue</button>'
+          : '') +
+        '</div></div>';
 
       return h + '</div>';
     }

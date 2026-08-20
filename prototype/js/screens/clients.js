@@ -15,7 +15,7 @@
 
     var h = '<div class="page">';
     h += '<div class="page-head"><span class="ph-txt">' +
-      '<h1>Clients</h1><span class="sub">' + rows.length + ' in ' + UI.esc(DATA.AGENCIES[ag].short) +
+      '<h1>Clients</h1><span class="sub">' + rows.length + ' in ' + UI.esc(DATA.agencyShort(ag)) +
       ' · management records only, not medical charts</span></span>' +
       '<span class="ph-actions">' +
       UI.btn('Import from Excel', { icon: 'upload', goto: 'clients.import' }) +
@@ -161,7 +161,7 @@
 
       h += '</tbody></table></div><div class="card-foot">' +
         UI.btn('Back', { goto: 'clients.import.errors' }) + '<span class="spacer"></span>' +
-        UI.btn('Import 38 clients', { cls: 'btn--primary', icon: 'check', goto: 'clients.import.done' }) +
+        '<button class="btn btn--primary" data-do="import.clients" data-goto="clients.import.done">' + UI.icon('check') + 'Import these clients</button>' +
       '</div></div>';
 
       return h + '</div>';
@@ -191,7 +191,7 @@
 
   function profileHead(c) {
     return '<div class="page-head"><span class="ph-txt">' +
-      '<span class="eyebrow-m">' + UI.esc(c.mrn) + ' · ' + UI.esc(DATA.AGENCIES[c.agency].short) + '</span>' +
+      '<span class="eyebrow-m">' + UI.esc(c.mrn) + ' · ' + UI.esc(DATA.agencyShort(c.agency)) + '</span>' +
       '<h1>' + UI.esc(c.name) + '</h1>' +
       '<span class="sub">' + UI.esc(c.waiver) + ' waiver · ' + UI.esc(c.program) + ' · client since ' + UI.esc(c.since) + '</span>' +
       '</span><span class="ph-actions">' + UI.emrLink(c.name.split(' ')[0]) +
@@ -212,8 +212,9 @@
     title: 'Client profile — Maria Lopez', nav: 'clients',
     crumb: 'Clients <span>›</span> <b>Maria Lopez</b>',
     render: function (S) {
-      var c = DATA.byId(DATA.CLIENTS, 'c1');
-      var a1 = DATA.byId(DATA.AUTHS, 'a1');
+      var c = DATA.byId(DATA.CLIENTS, 'c1') || DATA.CLIENTS[0];
+      if (!c) return UI.noRecord('clients yet', 'Back to clients', 'clients.list');
+      var a1 = DATA.byId(DATA.AUTHS, 'a1') || DATA.AUTHS[0] || { units: 1, rate: 0, used: 0 };
       var used = S.vars.a1used != null ? S.vars.a1used : a1.used;
       var calc = DATA.authCalc(a1, used);
 
@@ -287,7 +288,8 @@
     title: 'Waiver documents', nav: 'clients',
     crumb: 'Clients <span>›</span> Maria Lopez <span>›</span> <b>Waiver documents</b>',
     render: function () {
-      var c = DATA.byId(DATA.CLIENTS, 'c1');
+      var c = DATA.byId(DATA.CLIENTS, 'c1') || DATA.CLIENTS[0];
+      if (!c) return UI.noRecord('clients yet', 'Back to clients', 'clients.list');
       var h = '<div class="page">' + profileHead(c) + tabs('Waiver documents');
 
       h += UI.banner('bad', 'File incomplete — 1 missing, 1 expired',

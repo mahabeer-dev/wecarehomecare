@@ -95,7 +95,8 @@
 
   function detailBody(S, opts) {
     opts = opts || {};
-    var i = DATA.byId(DATA.INCIDENTS, opts.id || 'i1');
+    var i = DATA.byId(DATA.INCIDENTS, opts.id || 'i1') || DATA.INCIDENTS[0];
+    if (!i) return UI.noRecord('incidents recorded', 'Back to incidents', 'inc.list');
 
     var h = '<div class="page">';
     h += '<div class="page-head"><span class="ph-txt">' +

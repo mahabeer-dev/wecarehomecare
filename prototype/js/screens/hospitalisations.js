@@ -83,7 +83,8 @@
     title: 'Hospitalisation — Maria Lopez', nav: 'hosp',
     crumb: 'Hospitalisations <span>›</span> <b>Maria Lopez</b>',
     render: function () {
-      var r = DATA.byId(DATA.HOSPS, 'h1');
+      var r = DATA.byId(DATA.HOSPS, 'h1') || DATA.HOSPS[0];
+      if (!r) return UI.noRecord('hospital stays recorded', 'Back to hospitalisations', 'hosp.list');
 
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt">' +

@@ -26,8 +26,11 @@ python3 serve.py 8910
 See [`prototype/README.md`](prototype/README.md) for how to drive it and what each flow shows,
 and [`prototype/TESTING.md`](prototype/TESTING.md) for a role-by-role test script.
 
-Three demo accounts sign in on the front screen — Owner, Office Manager and Nurse — with the
-password `wechc-2026`. Sign out from the sidebar to swap between them.
+It opens as a **brand new install**: one account (the owner's) and nothing else, exactly as
+handed over. Dawn creates the agencies, the other user accounts, the waiver programmes and
+then imports the records — and everything she creates is saved in the browser and survives a
+refresh. **Load demo data** in the bottom bar fills it with a populated agency instead;
+**Start again** wipes it back. Demo password: `wechc-2026`.
 
 **Start with the flow called “★ Maria Lopez — one client, one year”.** It follows a single
 client from their import in January through a fall, a hospital stay, an automatically raised

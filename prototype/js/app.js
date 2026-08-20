@@ -28,12 +28,15 @@ var APP = (function () {
   function state() { return S; }
 
   function user() {
-    if (S.role === 'superadmin') return DATA.USERS.owner;
-    if (S.role === 'nurse') return DATA.USERS.nurse;
-    return DATA.USERS.admin;
+    var u = DATA.USERS;
+    var who = (S.role === 'superadmin') ? u.owner : (S.role === 'nurse' ? u.nurse : u.admin);
+    return who || u.owner || { name: '—', initials: '—', role: S.role };
   }
 
-  function agency() { return DATA.AGENCIES[S.agency]; }
+  function agency() {
+    var m = DATA.AGENCIES;
+    return m[S.agency] || m[Object.keys(m)[0]] || { id: null, name: '—', short: '—', abbr: '—' };
+  }
 
   function reset() {
     S.role = DEFAULTS.role;
@@ -44,7 +47,7 @@ var APP = (function () {
     S.vars = {};
     S.overlay = false;
     S.toasts = [];
-    DATA.setEmpty(false);
+    S.vars.setupStep = DB.setupStep();
     render();
   }
 
@@ -88,8 +91,9 @@ var APP = (function () {
     if (!st) return;
     if (st.role) S.role = st.role;
     if (st.agency) S.agency = st.agency;
-    if (st.empty !== undefined) DATA.setEmpty(st.empty);
-    if (st.setupStep !== undefined) S.vars.setupStep = st.setupStep;
+    if (st.data === 'demo' && DB.isFresh()) DB.loadDemo();
+    if (st.data === 'fresh') DB.startAgain();
+    if (st.setupStep !== undefined) { DB.setupStep(st.setupStep); S.vars.setupStep = st.setupStep; }
     if (st.patch) for (var k in st.patch) S.vars[k] = st.patch[k];
     if (st.toast) toast(st.toast.kind || 'info', st.toast.title, st.toast.body);
     S.screen = st.screen;
@@ -238,12 +242,12 @@ var APP = (function () {
       '<span class="bm-txt"><span class="bm-1">We Care Home Care</span>' +
       '<span class="bm-2">Operations</span></span></div>';
 
-    if (DATA.isEmpty()) {
+    if (DB.setupStep() < 7) {
       h += '<div class="nav-label">Set up</div>' +
            '<button class="nav-item' + (def.nav === 'setup' ? ' is-active' : '') + '" data-goto="setup.checklist">' +
            UI.icon('check') + '<span>Getting started</span>' +
            '<span class="pill" style="background:var(--g-300);color:#3A2A05">' +
-             (7 - Math.min(7, S.vars.setupStep || 0)) + '</span></button>';
+             (7 - Math.min(7, DB.setupStep())) + '</span></button>';
     }
 
     for (var i = 0; i < NAV.length; i++) {
@@ -276,7 +280,7 @@ var APP = (function () {
     h += '<span class="crumb">' + (def.crumb || '<b>' + UI.esc(def.title || '') + '</b>') + '</span>';
     h += '<span class="topbar-spacer"></span>';
 
-    if (S.role === 'superadmin') {
+    if (S.role === 'superadmin' && Object.keys(DATA.AGENCIES).length > 1) {
       h += '<div class="agency-switch">' +
         '<button data-agency="ga" class="' + (S.agency === 'ga' ? 'on' : '') + '">Georgia</button>' +
         '<button data-agency="ms" class="' + (S.agency === 'ms' ? 'on' : '') + '">Mississippi</button>' +
@@ -319,9 +323,11 @@ var APP = (function () {
       '<select class="chrome-sel" id="c-role" title="Switch role">' + roleOpts + '</select>' +
       '<select class="chrome-sel" id="c-flow" title="Switch flow">' + opts + '</select>' +
       '<button class="chrome-btn" id="c-index" title="All screens">' + UI.icon('grid') + '</button>' +
-      '<button class="chrome-btn" id="c-empty" title="Toggle between a system in use and a brand new empty one"' +
-        (DATA.isEmpty() ? ' style="background:var(--g-300);color:#3A2A05;font-weight:650"' : '') + '>' +
-        (DATA.isEmpty() ? 'Day one' : 'In use') + '</button>' +
+      '<button class="chrome-btn" id="c-wipe" title="Wipe everything back to a brand new install — one account, nothing else">' +
+        'Start again' + '</button>' +
+      (DB.isFresh()
+        ? '<button class="chrome-btn" id="c-demo" title="Fill it with a populated agency">Load demo data</button>'
+        : '') +
       (f ? '<span class="chrome-step">' + (S.step + 1) + ' / ' + f.steps.length + '</span>' : '') +
       '<span class="chrome-div"></span>' +
       '<button class="chrome-btn chrome-btn--next" id="c-next"' + (atEnd ? ' disabled' : '') + '>' +
@@ -487,6 +493,71 @@ var APP = (function () {
     return (d && SCREENS[d]) ? d : null;
   }
 
+  /* ---------------- write actions ----------------
+     Buttons carrying data-do="name" run one of these before
+     navigating. This is where the prototype actually saves.  */
+
+  var ACTIONS = {
+    'setup.agencies': function () {
+      if (DB.all('agencies').length) return;
+      DB.add('agencies', { id:'ga', name:'We Care Home Care — Georgia', short:'Georgia', abbr:'GA' });
+      DB.add('agencies', { id:'ms', name:'We Care Home Care — Mississippi', short:'Mississippi', abbr:'MS' });
+      DB.setupStep(1); S.vars.setupStep = 1; S.agency = 'ga';
+      DB.log(user().name, 'Created 2 agencies', 'Setup');
+      toast('ok', 'Agencies saved', 'Georgia and Mississippi. Every record now belongs to one of them.');
+    },
+    'setup.team': function () {
+      if (DB.all('users').length > 1) return;
+      DB.add('users', { id:'u-admin', name:'Renee Alcott', initials:'RA',
+        email:'renee.alcott@wecarehomecare.com', role:'admin', title:'Office Manager',
+        agency:'ga', status:'Invited' });
+      DB.add('users', { id:'u-nurse', name:'Yvonne Pryce', initials:'YP',
+        email:'yvonne.pryce@wecarehomecare.com', role:'nurse', title:'Registered Nurse',
+        agency:'ga', status:'Invited' });
+      DB.setupStep(2); S.vars.setupStep = 2;
+      DB.log(user().name, 'Invited 2 users', 'Setup');
+      toast('ok', 'Invitations sent', 'Renee and Yvonne can now sign in. Their accounts did not exist until now.');
+    },
+    'setup.programmes': function () {
+      if (DB.all('programmes').length) return;
+      var docs = DEMO.checklist;
+      DB.add('programmes', { id:'p-now',  name:'NOW',  agency:'ga', docs: JSON.parse(JSON.stringify(docs)) });
+      DB.add('programmes', { id:'p-comp', name:'COMP', agency:'ga', docs: JSON.parse(JSON.stringify(docs)) });
+      DB.add('programmes', { id:'p-idd',  name:'IDD Community Supports', agency:'ms', docs: [] });
+      DB.setupStep(3); S.vars.setupStep = 3;
+      DB.log(user().name, 'Added 3 waiver programmes', 'Setup');
+      toast('ok', 'Programmes saved', 'The system now knows which documents each one requires.');
+    },
+    'setup.reminders': function () {
+      if (DB.setupStep() < 4) { DB.setupStep(4); S.vars.setupStep = 4; }
+      toast('ok', 'Reminder timings confirmed', 'Change them any time in Settings.');
+    },
+    'import.clients': function () {
+      if (DB.all('clients').length) return;
+      DB.addMany('clients', JSON.parse(JSON.stringify(DEMO.clients)));
+      DB.setupStep(5); S.vars.setupStep = 5;
+      DB.log(user().name, 'Imported ' + DEMO.clients.length + ' clients', 'Bulk import');
+      toast('ok', DEMO.clients.length + ' clients imported', 'They are saved. Refresh the page and they will still be here.');
+    },
+    'import.caregivers': function () {
+      if (DB.all('caregivers').length) return;
+      DB.addMany('caregivers', JSON.parse(JSON.stringify(DEMO.caregivers)));
+      DB.setCollection('credentials', JSON.parse(JSON.stringify(DEMO.credentials)));
+      DB.setupStep(6); S.vars.setupStep = 6;
+      DB.log(user().name, 'Imported ' + DEMO.caregivers.length + ' caregivers', 'Bulk import');
+      toast('ok', DEMO.caregivers.length + ' caregivers imported', 'With their licences and training dates.');
+    },
+    'setup.finish': function () {
+      DB.addMany('auths',     JSON.parse(JSON.stringify(DEMO.auths)));
+      DB.addMany('usage',     JSON.parse(JSON.stringify(DEMO.usage)));
+      DB.addMany('oversight', JSON.parse(JSON.stringify(DEMO.oversight)));
+      DB.addMany('isp',       JSON.parse(JSON.stringify(DEMO.isp)));
+      DB.setupStep(7); S.vars.setupStep = 7;
+      DB.log(user().name, 'Added authorisations — setup complete', 'Setup');
+      toast('ok', 'Setup complete', 'From tomorrow the dashboard starts telling you what needs attention.');
+    }
+  };
+
   /* ---------------- click delegation ---------------- */
 
   var ADVANCERS = 'button, a, [role="button"], tr[data-row], .stat, .card--click, .clist-row, ' +
@@ -497,20 +568,25 @@ var APP = (function () {
     if (!t.closest) return;
 
     /* --- demo chrome --- */
-    var chromeBtn = t.closest('#c-reset, #c-next, #c-index, #c-empty, #ovl-x');
+    var chromeBtn = t.closest('#c-reset, #c-next, #c-index, #c-wipe, #c-demo, #ovl-x');
     if (chromeBtn) {
       if (chromeBtn.id === 'c-reset') reset();
       else if (chromeBtn.id === 'c-next') next();
       else if (chromeBtn.id === 'c-index') { S.overlay = !S.overlay; paintOverlay(); }
-      else if (chromeBtn.id === 'c-empty') {
-        var nowEmpty = !DATA.isEmpty();
-        DATA.setEmpty(nowEmpty);
-        S.flow = null;
-        S.vars.setupStep = nowEmpty ? 0 : 7;
-        S.role = 'superadmin'; S.agency = 'ga';
-        S.screen = nowEmpty ? 'setup.welcome' : 'dash.home';
-        toast('info', nowEmpty ? 'Day one — empty system' : 'A system in use',
-          nowEmpty ? 'Exactly what the client receives before any data exists.' : 'Populated with demo records again.');
+      else if (chromeBtn.id === 'c-wipe') {
+        DB.startAgain();
+        S.flow = null; S.step = 0; S.vars = { loginAs: 'owner', setupStep: 0 };
+        S.role = 'superadmin'; S.agency = null;
+        S.screen = 'auth.login';
+        toast('info', 'Back to a brand new install', 'One account, nothing else. Exactly what is handed over.');
+        render();
+      }
+      else if (chromeBtn.id === 'c-demo') {
+        DB.loadDemo();
+        S.vars.setupStep = 7;
+        S.agency = 'ga';
+        S.screen = 'dash.home';
+        toast('ok', 'Demo agency loaded', 'A populated system, for showing what it looks like in use.');
         render();
       }
       else if (chromeBtn.id === 'ovl-x') { S.overlay = false; paintOverlay(); }
@@ -530,6 +606,13 @@ var APP = (function () {
 
     /* --- typing fields do nothing --- */
     if (t.closest('[data-inert]')) return;
+
+    /* --- a button that actually writes something --- */
+    var doer = t.closest('[data-do]');
+    if (doer) {
+      var fn = ACTIONS[doer.getAttribute('data-do')];
+      if (fn) { fn(S); }
+    }
 
     /* --- choosing which account to sign in as --- */
     var pick = t.closest('[data-login-as]');
@@ -605,6 +688,8 @@ var APP = (function () {
   /* ---------------- boot ---------------- */
 
   function boot() {
+    DB.boot();
+    S.vars.setupStep = DB.setupStep();
     document.addEventListener('click', onClick);
     document.addEventListener('change', function (e) {
       if (e.target.id === 'c-flow') {

@@ -98,7 +98,8 @@ Every client, caregiver and clinical event is invented.
 
 ## Round 4 — Day one, as the client receives it
 
-Press **Day one** in the black bar (or pick the flow *● Day one — a brand new empty system*).
+Press **Start again** in the black bar. This is not a display mode — it genuinely empties the
+store.
 
 This is the platform with **nothing in it** — no clients, no staff, no authorisations, no
 history. It answers the question "what does Dawn actually do first?"
@@ -119,7 +120,15 @@ history. It answers the question "what does Dawn actually do first?"
 
 - [ ] Work down it. After the last step, **Setup complete** lists what the system now does on
       its own every night without being asked.
-- [ ] Press **In use** to put the demo records back.
+- [ ] Press **Load demo data** to fill it with a populated agency instead.
 
-**The point of this round:** step 3 is the only part nobody can do for her. Everything else is
-a spreadsheet or a default. Worth knowing when planning the handover.
+### The two things to actually verify
+
+- [ ] **Only one account exists at the start.** The sign-in screen offers Dawn and nobody
+      else, and says so. Renee and Yvonne do not exist until setup step 2 creates them — go
+      back to the sign-in screen after that step and all three are offered.
+- [ ] **It saves.** Do two or three setup steps, then **refresh the page**. Your progress, your
+      agencies and your invited users are all still there. Nothing is held in memory only.
+
+**The point of this round:** step 3, the waiver programmes, is the only part nobody can do for
+her. Everything else is a spreadsheet or a default. Worth knowing when planning the handover.

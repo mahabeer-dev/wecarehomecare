@@ -7,7 +7,7 @@ FLOWS['dayone'] = {
   title: '● Day one — a brand new empty system',
   steps: [
     { screen: 'auth.login',        label: 'Dawn signs in for the very first time',
-      role: 'superadmin', agency: 'ga', empty: true, setupStep: 0 },
+      role: 'superadmin', agency: 'ga', data: 'fresh', setupStep: 0 },
     { screen: 'setup.welcome',     label: 'What has to happen before it is useful' },
     { screen: 'setup.checklist',   label: 'Step 1 — name the two agencies' },
     { screen: 'setup.agencies',    label: 'Step 2 — invite Renee and Yvonne' },
@@ -23,8 +23,7 @@ FLOWS['dayone'] = {
     { screen: 'clients.import',    label: 'Then the authorisations', setupStep: 6 },
     { screen: 'budget.list',       label: 'Add the first one' },
     { screen: 'budget.setup',      label: 'Setup is finished', setupStep: 7 },
-    { screen: 'setup.done',        label: 'The dashboard, now that it has dates to watch',
-      empty: false },
+    { screen: 'setup.done',        label: 'The dashboard, now that it has dates to watch' },
     { screen: 'dash.home',         label: 'Finish' }
   ]
 };
@@ -33,7 +32,7 @@ FLOWS['maria'] = {
   title: '★ Maria Lopez — one client, one year',
   steps: [
     { screen: 'auth.login',        label: 'Renee types the wrong password', role: 'admin', agency: 'ga',
-      empty: false, patch: { a1used: null } },
+      data: 'demo', patch: { a1used: null } },
     { screen: 'auth.error',        label: 'Try again with the right one' },
     { screen: 'auth.loading',      label: 'Land on the dashboard' },
     { screen: 'dash.home',         label: 'Open the client list' },
@@ -60,7 +59,7 @@ FLOWS['maria'] = {
 FLOWS['access'] = {
   title: 'Who sees what — roles and agencies',
   steps: [
-    { screen: 'auth.login',    label: 'Sign in as the owner', empty: false, role: 'superadmin', agency: 'ga' },
+    { screen: 'auth.login',    label: 'Sign in as the owner', data: 'demo', role: 'superadmin', agency: 'ga' },
     { screen: 'auth.agency',   label: 'Pick an agency' },
     { screen: 'dash.home',     label: 'Switch to Mississippi', role: 'superadmin', agency: 'ga' },
     { screen: 'dash.home',     label: 'See a quiet day', agency: 'ms' },
@@ -77,7 +76,7 @@ FLOWS['access'] = {
 FLOWS['import'] = {
   title: 'Bringing a caseload in from Excel',
   steps: [
-    { screen: 'clients.list',           label: 'Start an import', empty: false, role: 'admin', agency: 'ga' },
+    { screen: 'clients.list',           label: 'Start an import', data: 'demo', role: 'admin', agency: 'ga' },
     { screen: 'clients.import',         label: 'Upload the spreadsheet' },
     { screen: 'clients.import.errors',  label: 'Four rows have problems' },
     { screen: 'clients.import.preview', label: 'Check before anything is saved' },
@@ -89,7 +88,7 @@ FLOWS['import'] = {
 FLOWS['budget'] = {
   title: 'Budget — the calculator with alarms',
   steps: [
-    { screen: 'budget.list',    label: 'Set up a new authorisation', empty: false, role: 'admin', agency: 'ga', patch: { a1used: null } },
+    { screen: 'budget.list',    label: 'Set up a new authorisation', data: 'demo', role: 'admin', agency: 'ga', patch: { a1used: null } },
     { screen: 'budget.setup',   label: 'Enter the units and the rate' },
     { screen: 'budget.detail',  label: 'A month later, enter the hours' },
     { screen: 'budget.usage',   label: 'The system recalculates' },
@@ -104,7 +103,7 @@ FLOWS['budget'] = {
 FLOWS['incident'] = {
   title: 'An incident, start to finish',
   steps: [
-    { screen: 'inc.list',    label: 'Record what happened', empty: false, role: 'admin', agency: 'ga' },
+    { screen: 'inc.list',    label: 'Record what happened', data: 'demo', role: 'admin', agency: 'ga' },
     { screen: 'inc.new',     label: 'Assign the follow-up' },
     { screen: 'inc.detail',  label: 'Seven days pass with nothing done' },
     { screen: 'inc.aged',    label: 'It escalates to the manager' },
@@ -118,7 +117,7 @@ FLOWS['incident'] = {
 FLOWS['hospital'] = {
   title: 'Hospital stay and the nurse visit',
   steps: [
-    { screen: 'hosp.list',   label: 'Record the admission', empty: false, role: 'admin', agency: 'ga' },
+    { screen: 'hosp.list',   label: 'Record the admission', data: 'demo', role: 'admin', agency: 'ga' },
     { screen: 'hosp.new',    label: 'Discharge — the visit becomes required' },
     { screen: 'hosp.detail', label: 'Now switch to the nurse' },
     { screen: 'dash.home',   label: 'The nurse list for today', role: 'nurse' },
@@ -130,7 +129,7 @@ FLOWS['hospital'] = {
 FLOWS['caregivers'] = {
   title: 'Caregiver papers that expire',
   steps: [
-    { screen: 'cg.list',   label: 'Open someone with an expired licence', empty: false, role: 'admin', agency: 'ga' },
+    { screen: 'cg.list',   label: 'Open someone with an expired licence', data: 'demo', role: 'admin', agency: 'ga' },
     { screen: 'cg.detail', label: 'Record the renewal' },
     { screen: 'cg.renew',  label: 'The old record is kept' },
     { screen: 'cg.detail', label: 'See everything expiring' },
@@ -141,7 +140,7 @@ FLOWS['caregivers'] = {
 FLOWS['oversight'] = {
   title: 'Scheduled reviews',
   steps: [
-    { screen: 'ov.list',   label: 'A supervisor visit', empty: false, role: 'admin', agency: 'ga' },
+    { screen: 'ov.list',   label: 'A supervisor visit', data: 'demo', role: 'admin', agency: 'ga' },
     { screen: 'ov.visit',  label: 'An annual reassessment' },
     { screen: 'ov.assess', label: 'HRST — brought forward by an incident' },
     { screen: 'ov.hrst',   label: 'The two plan reviews' },
@@ -153,7 +152,7 @@ FLOWS['oversight'] = {
 FLOWS['isp'] = {
   title: 'Monthly goal progress',
   steps: [
-    { screen: 'isp.list',   label: 'Enter this month’s percentage', empty: false, role: 'admin', agency: 'ga' },
+    { screen: 'isp.list',   label: 'Enter this month’s percentage', data: 'demo', role: 'admin', agency: 'ga' },
     { screen: 'isp.entry',  label: 'It is 35 points below last month' },
     { screen: 'isp.detail', label: 'Finish — the drop is flagged' }
   ]
@@ -162,7 +161,7 @@ FLOWS['isp'] = {
 FLOWS['tasks'] = {
   title: 'Tasks and escalation',
   steps: [
-    { screen: 'tasks.list',      label: 'Create a task', empty: false, role: 'admin', agency: 'ga' },
+    { screen: 'tasks.list',      label: 'Create a task', data: 'demo', role: 'admin', agency: 'ga' },
     { screen: 'tasks.new',       label: 'Attach it to a quality item' },
     { screen: 'tasks.detail',    label: 'What happens if it is ignored' },
     { screen: 'tasks.escalated', label: 'Finish' }
@@ -172,7 +171,7 @@ FLOWS['tasks'] = {
 FLOWS['reports'] = {
   title: 'Reports and exports',
   steps: [
-    { screen: 'rep.builder', label: 'Run it', empty: false, role: 'admin', agency: 'ga', patch: { a1used: 1500 } },
+    { screen: 'rep.builder', label: 'Run it', data: 'demo', role: 'admin', agency: 'ga', patch: { a1used: 1500 } },
     { screen: 'rep.results', label: 'Export it' },
     { screen: 'rep.export',  label: 'Preview the branded PDF' },
     { screen: 'rep.pdf',     label: 'Finish' }
@@ -182,7 +181,7 @@ FLOWS['reports'] = {
 FLOWS['settings'] = {
   title: 'What the client can change without us',
   steps: [
-    { screen: 'set.users',      label: 'The agencies', empty: false, role: 'superadmin', agency: 'ga' },
+    { screen: 'set.users',      label: 'The agencies', data: 'demo', role: 'superadmin', agency: 'ga' },
     { screen: 'set.agencies',   label: 'Reminder timings' },
     { screen: 'set.reminders',  label: 'The automatic rules' },
     { screen: 'set.thresholds', label: 'The waiver checklists' },
@@ -194,7 +193,7 @@ FLOWS['settings'] = {
 FLOWS['states'] = {
   title: 'Empty, loading and audit',
   steps: [
-    { screen: 'sys.loading', label: 'An empty result', empty: false, role: 'admin', agency: 'ms' },
+    { screen: 'sys.loading', label: 'An empty result', data: 'demo', role: 'admin', agency: 'ms' },
     { screen: 'sys.empty',   label: 'A quiet dashboard' },
     { screen: 'dash.empty',  label: 'The audit trail' },
     { screen: 'sys.audit',   label: 'Finish' }

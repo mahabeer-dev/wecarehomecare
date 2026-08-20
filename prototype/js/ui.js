@@ -163,7 +163,10 @@ var UI = (function () {
   /* A whole page saying "there is nothing here yet, here is how to start". */
   function emptyModule(o) {
     var acts = (o.actions || []).map(function (a) {
-      return btn(a.label, { cls: a.primary ? 'btn--primary' : '', icon: a.icon, goto: a.goto });
+      return '<button class="btn ' + (a.primary ? 'btn--primary' : '') + '"' +
+             (a.goto ? ' data-goto="' + esc(a.goto) + '"' : '') +
+             (a.doo ? ' data-do="' + esc(a.doo) + '"' : '') + '>' +
+             (a.icon ? icon(a.icon) : '') + esc(a.label) + '</button>';
     }).join('');
     return '<div class="card"><div class="card-body" style="padding:0">' +
       '<div class="empty" style="padding:64px 24px">' +
@@ -175,6 +178,17 @@ var UI = (function () {
       '</div></div></div>';
   }
 
+  /* Shown when a detail screen is opened for something that does not exist. */
+  function noRecord(what, backLabel, backTo) {
+    return '<div class="page page--narrow">' +
+      emptyModule({
+        icon: 'search',
+        title: 'Nothing here yet',
+        body: 'There are no ' + what + ' in the system. Once some exist, this is where you open one.',
+        actions: [{ label: backLabel, primary: true, goto: backTo }]
+      }) + '</div>';
+  }
+
   function emrLink(name) {
     return '<button class="emrlink">' + icon('ext') + 'Open ' + esc(name) + ' in the EMR</button>';
   }
@@ -182,6 +196,6 @@ var UI = (function () {
   return {
     icon: icon, esc: esc, initials: initials, badge: badge, stat: stat, meter: meter,
     banner: banner, btn: btn, field: field, kv: kv, tlItem: tlItem, bars: bars,
-    empty: empty, emrLink: emrLink, emptyModule: emptyModule
+    empty: empty, emrLink: emrLink, emptyModule: emptyModule, noRecord: noRecord
   };
 })();

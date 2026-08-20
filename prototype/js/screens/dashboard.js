@@ -19,12 +19,10 @@
 
   function adminDash(S) {
     var ag = S.role === 'superadmin' ? null : S.agency;
-    var agName = S.role === 'superadmin' ? DATA.AGENCIES[S.agency].short : APP.agency().short;
+    var agName = S.role === 'superadmin' ? DATA.agencyShort(S.agency) : APP.agency().short;
     var c = APP.counts();
 
-    var a1 = DATA.byId(DATA.AUTHS, 'a1');
-    var used = S.vars.a1used != null ? S.vars.a1used : a1.used;
-    var calc = DATA.authCalc(a1, used);
+    var auths = DATA.inAgency(DATA.AUTHS, ag || S.agency);
 
     var h = '<div class="page">';
 
@@ -72,9 +70,12 @@
     h += '<div class="card"><div class="card-head"><h3>Authorisation utilisation</h3>' +
       '<span class="spacer"></span>' + UI.btn('Open', { cls: 'btn--sm', goto: 'budget.list' }) + '</div>' +
       '<div class="card-body">' +
-        budgetLine('Maria Lopez', 'Community Living Support', calc) +
-        budgetLine('Adaeze Okafor', 'Community Living Support', DATA.authCalc(DATA.byId(DATA.AUTHS, 'a4'))) +
-        budgetLine('Curtis Nabors', 'Personal Support', DATA.authCalc(DATA.byId(DATA.AUTHS, 'a3'))) +
+        (auths.length
+          ? auths.slice(0, 3).map(function (a) {
+              var used = (a.id === 'a1' && S.vars.a1used != null) ? S.vars.a1used : a.used;
+              return budgetLine(a.clientName, a.service, DATA.authCalc(a, used));
+            }).join('')
+          : '<span class="small muted">No authorisations yet.</span>') +
       '</div>' +
     '</div>';
 

@@ -14,14 +14,14 @@
       if (!rows.length) return '<div class="page">' +
         '<div class="page-head"><span class="ph-txt"><h1>Caregivers</h1>' +
         '<span class="sub">Nothing here yet</span></span></div>' +
-        UI.emptyModule({title:'No staff records yet',body:'Add your caregivers so their licences, CPR and training can be tracked. None of them will get a login — these are compliance records only.',icon:'badge',actions:[{label:'Import from Excel',primary:true,icon:'upload',goto:'clients.import'},{label:'Add one by hand',icon:'plus',goto:'cg.detail'}]}) + '</div>';
+        UI.emptyModule({title:'No staff records yet',body:'Add your caregivers so their licences, CPR and training can be tracked. None of them will get a login — these are compliance records only.',icon:'badge',actions:[{label:'Import from Excel',primary:true,icon:'upload',goto:'cg.list',doo:'import.caregivers'},{label:'Add one by hand',icon:'plus',goto:'cg.list',doo:'import.caregivers'}]}) + '</div>';
 
       var exp = rows.filter(function (r) { return r.worst === 'expired'; }).length;
       var soon = rows.filter(function (r) { return r.worst === 'soon'; }).length;
 
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt"><h1>Caregivers</h1>' +
-        '<span class="sub">' + rows.length + ' in ' + UI.esc(DATA.AGENCIES[S.agency].short) +
+        '<span class="sub">' + rows.length + ' in ' + UI.esc(DATA.agencyShort(S.agency)) +
         ' · compliance records, not user accounts</span></span>' +
         '<span class="ph-actions">' + UI.btn('Import from Excel', { icon: 'upload', goto: 'clients.import' }) +
         UI.btn('Add caregiver', { cls: 'btn--primary', icon: 'plus', goto: 'cg.detail' }) + '</span></div>';

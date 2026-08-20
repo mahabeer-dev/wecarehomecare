@@ -16,7 +16,7 @@
     { id:'auths',      label:'Add authorisations',        sub:'Then the budget tracking starts',      goto:'budget.setup',     icon:'money' }
   ];
 
-  function done(S) { return Math.max(0, Math.min(STEPS.length, S.vars.setupStep || 0)); }
+  function done() { return Math.max(0, Math.min(STEPS.length, DB.setupStep())); }
 
   /* ---------------- first sign-in ---------------- */
 
@@ -65,7 +65,7 @@
     title: 'Getting started', nav: 'dash',
     crumb: '<b>Getting started</b>',
     render: function (S) {
-      var d = done(S);
+      var d = done();
       var pc = Math.round((d / STEPS.length) * 100);
 
       var h = '<div class="page page--narrow">';
@@ -144,7 +144,7 @@
 
         '<div class="card"><div class="card-foot">' + UI.btn('Back', { goto: 'setup.checklist' }) +
         '<span class="spacer"></span>' +
-        UI.btn('Save and continue', { cls: 'btn--primary', icon: 'arrow', goto: 'setup.team' }) +
+        '<button class="btn btn--primary" data-do="setup.agencies" data-goto="setup.team">' + UI.icon('arrow') + 'Save the agencies</button>' +
         '</div></div></div>';
     }
   });
@@ -196,7 +196,7 @@
 
         '<div class="card"><div class="card-foot">' + UI.btn('Back', { goto: 'setup.agencies' }) +
         '<span class="spacer"></span>' +
-        UI.btn('Send the invitations', { cls: 'btn--primary', icon: 'arrow', goto: 'setup.programmes' }) +
+        '<button class="btn btn--primary" data-do="setup.team" data-goto="setup.programmes">' + UI.icon('arrow') + 'Send the invitations</button>' +
         '</div></div></div>';
     }
   });
@@ -241,7 +241,7 @@
 
         '<div class="card"><div class="card-foot">' + UI.btn('Back', { goto: 'setup.team' }) +
         '<span class="spacer"></span>' +
-        UI.btn('Save and continue', { cls: 'btn--primary', icon: 'arrow', goto: 'set.reminders' }) +
+        '<button class="btn btn--primary" data-do="setup.programmes" data-goto="set.reminders">' + UI.icon('arrow') + 'Save the programmes</button>' +
         '</div></div></div>';
     }
   });
@@ -266,7 +266,7 @@
     title: 'Dashboard — day one', nav: 'dash',
     crumb: '<b>Dashboard</b>',
     render: function (S) {
-      var d = done(S);
+      var d = done();
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt">' +
         '<span class="eyebrow-m">Georgia · your first day</span>' +
