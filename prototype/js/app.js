@@ -53,6 +53,35 @@ var APP = (function () {
     render();
   }
 
+  /* Where you were last time, if the records still support it. */
+  function restoreSession() {
+    var sess = DB.session();
+    if (!sess) return;
+    if (sess.loginAs && !DB.get('users', sess.loginAs)) return;   /* that account is gone */
+
+    if (sess.loginAs) S.vars.loginAs = sess.loginAs;
+    if (sess.role) S.role = sess.role;
+    if (sess.agency && DB.get('agencies', sess.agency)) S.agency = sess.agency;
+    if (sess.screen && SCREENS[sess.screen] && !SCREENS[sess.screen].auto) S.screen = sess.screen;
+    if (sess.clientId) S.vars.clientId = sess.clientId;
+    if (sess.cgId) S.vars.cgId = sess.cgId;
+    if (sess.incId) S.vars.incId = sess.incId;
+  }
+
+  /* Remembered on every render, so a refresh lands where you left off. A
+     scripted flow is not remembered — that is a demo, not a place. */
+  function rememberSession() {
+    if (S.flow) return;
+    if (String(S.screen).indexOf('auth.') === 0) return;
+    DB.setSession({
+      loginAs: S.vars.loginAs || null,
+      role: S.role, agency: S.agency, screen: S.screen,
+      clientId: S.vars.clientId || null,
+      cgId: S.vars.cgId || null,
+      incId: S.vars.incId || null
+    });
+  }
+
   /* Sign-in succeeded: become whoever was picked on the login screen. */
   function applyAccount() {
     var u = DB.get('users', S.vars.loginAs) || DB.all('users')[0];
@@ -186,6 +215,7 @@ var APP = (function () {
     if (!S.agency && DB.all('agencies').length) S.agency = DB.all('agencies')[0].id;
 
     var def = currentDef();
+    rememberSession();
 
     /* loading screens move on by themselves, like real ones */
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
@@ -1349,6 +1379,7 @@ var APP = (function () {
     /* --- sign out --- */
     if (t.closest('[data-signout]')) {
       var who = S.vars.loginAs || 'admin';
+      DB.clearSession();
       S.flow = null; S.step = 0; S.vars = { loginAs: who };
       S.screen = 'auth.login';
       toast('info', 'Signed out', 'Pick another account to sign in as.');
@@ -1414,11 +1445,19 @@ var APP = (function () {
   function boot() {
     DB.boot();
     S.vars.setupStep = DB.setupStep();
+    restoreSession();
+
     if (DB.wasResetOnBoot()) {
       setTimeout(function () {
         toast('info', 'Started fresh',
-          'The prototype changed shape since you last opened it, so the old data was cleared ' +
-          'rather than half-migrated.');
+          'The stored data was from too old a build to bring forward, so it was replaced ' +
+          'rather than half-converted.');
+      }, 400);
+    } else if (DB.migratedFrom() !== null) {
+      setTimeout(function () {
+        toast('ok', 'Your data was brought forward',
+          'The prototype changed shape since you last opened it. Everything you had entered ' +
+          'was kept — only Start again clears it.');
       }, 400);
     }
     document.addEventListener('click', onClick);

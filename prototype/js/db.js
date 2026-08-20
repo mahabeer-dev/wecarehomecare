@@ -18,14 +18,16 @@ var DB = (function () {
 
   var KEY = 'wechc.prototype.v1';
 
-  /* Bump this whenever the shape of the data changes. A stored copy from an
-     older build is discarded rather than merged, because a half-old, half-new
-     store looks like working data and is not. */
-  var SCHEMA = 7;
+  /* The shape of the data has a version. When it moves, what is already
+     stored is brought forward step by step — never thrown away. Somebody
+     who has spent an hour setting the system up should lose that only when
+     they ask to, by pressing Start again. */
+  var SCHEMA = 8;
 
   var state = null;
   var storageWorks = true;
   var wasReset = false;
+  var migrated = null;
 
   /* ---------------- storage ---------------- */
 
@@ -58,12 +60,87 @@ var DB = (function () {
     return f;
   }
 
+  /* One step per version. Each takes a store at version n and returns it at
+     n+1. They run in order, so a store from any earlier build catches up. */
+  var MIGRATIONS = {
+
+    /* Authorisations stopped being a setup step, so setup finishes at six. */
+    3: function (st) {
+      if (st.settings && st.settings.setupStep > 6) st.settings.setupStep = 6;
+      return st;
+    },
+
+    /* The demo became a snapshot of one particular day. Nothing to change in
+       a real store — a demo store gets its anchor from loadDemo(). */
+    4: function (st) { return st; },
+
+    /* Georgia began shipping with the platform. A store that never had an
+       agency gets it; one that already has agencies is left alone. */
+    5: function (st) {
+      if (!st.agencies || !st.agencies.length) {
+        st.agencies = clone(SEED.agencies);
+        (st.programmes || []).forEach(function (p) {
+          if (!p.agency) p.agency = st.agencies[0].id;
+        });
+      }
+      return st;
+    },
+
+    /* Waiver documents stopped carrying a written status and started
+       carrying the dates the status is worked out from. */
+    6: function (st) {
+      (st.clientDocs || []).forEach(function (d, n) {
+        if (!d.id) d.id = 'cd-' + (d.client || 'x') + '-' + n;
+        if (d.renews === undefined) d.renews = !!(d.expires && d.expires !== '\u2014');
+        if (d.period === undefined) d.period = '\u2014';
+        if (d.status === 'Missing') { d.received = '\u2014'; d.expires = '\u2014'; }
+        delete d.status;
+      });
+      return st;
+    },
+
+    /* Incidents stopped carrying a written status too. An old record that
+       said Closed becomes one that was closed, with a follow-up to match. */
+    7: function (st) {
+      (st.incidents || []).forEach(function (i, n) {
+        if (!i.id) i.id = 'i-' + n;
+        if (i.notified === undefined) i.notified = [];
+        if (i.status === 'Closed' && !i.closed) {
+          i.closed = { on: i.due || '\u2014', by: i.assigned || 'System' };
+          if (!i.followUp) i.followUp = { on: i.due || '\u2014', by: i.assigned || 'System', note: '' };
+        }
+        delete i.status;
+        delete i.ageDays;
+        delete i.triggeredQI;
+      });
+      return st;
+    }
+  };
+
+  function migrate(st) {
+    var from = st.schema || 0;
+    if (from >= SCHEMA) return st;
+    for (var v = from; v < SCHEMA; v++) {
+      var step = MIGRATIONS[v];
+      if (step) st = step(st);
+    }
+    st.schema = SCHEMA;
+    migrated = from;
+    return st;
+  }
+
   function boot() {
     var stored = readStore();
-    if (stored && stored.schema !== SCHEMA) {
-      stored = null;
-      wasReset = true;
+
+    /* A store older than the migration chain cannot be brought forward
+       honestly, so that one is replaced rather than half-converted. */
+    if (stored && (stored.schema || 0) < 3) { stored = null; wasReset = true; }
+
+    if (stored) {
+      try { stored = migrate(stored); }
+      catch (e) { stored = null; wasReset = true; migrated = null; }
     }
+
     state = stored || fresh();
     /* fill in anything a newer build added */
     var blank = fresh();
@@ -83,12 +160,39 @@ var DB = (function () {
     return state;
   }
 
-  /* True when boot() threw away an incompatible store. */
+  /* True only when a store was too old to bring forward and had to be replaced. */
   function wasResetOnBoot() { return wasReset; }
+
+  /* The version a store was brought forward from, or null if it was already current. */
+  function migratedFrom() { return migrated; }
 
   function startAgain() {
     state = fresh();
+    clearSession();
     writeStore();
+  }
+
+  /* ---------------- the session ----------------
+     Who is signed in and what they were looking at, kept apart from the
+     records so that clearing one never clears the other. A refresh puts
+     you back where you were; Start again is what forgets you. */
+
+  var SKEY = KEY + '.session';
+
+  function session() {
+    try {
+      var raw = window.localStorage.getItem(SKEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function setSession(o) {
+    if (!storageWorks) return;
+    try { window.localStorage.setItem(SKEY, JSON.stringify(o)); } catch (e) {}
+  }
+
+  function clearSession() {
+    try { window.localStorage.removeItem(SKEY); } catch (e) {}
   }
 
   /* An untouched install. Georgia ships with the platform, so its presence
@@ -262,7 +366,8 @@ var DB = (function () {
     all: all, get: get, add: add, addMany: addMany, update: update, remove: remove,
     setCollection: setCollection,
     settings: settings, setSetting: setSetting, setupStep: setupStep,
-    wasResetOnBoot: wasResetOnBoot,
+    wasResetOnBoot: wasResetOnBoot, migratedFrom: migratedFrom,
+    session: session, setSession: setSession, clearSession: clearSession,
     log: log, stamp: stamp, persists: persists, stats: stats
   };
 })();
