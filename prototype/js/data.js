@@ -88,9 +88,10 @@ var DATA = (function () {
   Object.defineProperty(API, 'AGENCIES',    { get: agencyMap });
   Object.defineProperty(API, 'USERS',       { get: usersByRole });
   Object.defineProperty(API, 'CREDENTIALS', { get: function () { return DB.all('credentials') || {}; } });
-  Object.defineProperty(API, 'CHECKLIST',   { get: function () {
-    var p = DB.all('programmes')[0];
-    return (p && p.docs) || [];
+  /* One client's paperwork, with its status — not the programme template.
+     Only meaningful once clients exist. */
+  Object.defineProperty(API, 'CHECKLIST', { get: function () {
+    return DB.all('clients').length ? DEMO.checklist : [];
   } });
 
   /* Import fixtures are demo material, not stored records. */

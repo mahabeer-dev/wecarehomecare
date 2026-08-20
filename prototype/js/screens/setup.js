@@ -298,60 +298,128 @@
 
   screen('setup.programmes', {
     title: 'Set up · waiver programmes', nav: 'dash',
-    crumb: 'Getting started <span>›</span> <b>Programmes</b>',
-    render: function () {
-      return '<div class="page page--narrow">' +
+    crumb: 'Getting started <span>&rsaquo;</span> <b>Programmes</b>',
+    render: function (S) {
+      var progs = DB.all('programmes');
+      var agencies = DB.all('agencies');
+      var sel = DB.get('programmes', S.vars.progId) || progs[0] || null;
+
+      var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt">' +
         '<span class="eyebrow-m">Step 3 of 7</span><h1>Your waiver programmes</h1>' +
-        '<span class="sub">And the documents each one requires. This is the list you already keep on paper.</span>' +
-        '</span></div>' +
+        '<span class="sub">And the documents each one requires. This is the list you already ' +
+        'keep on paper — and the only part of setup nobody can do for you.</span>' +
+        '</span></div>';
 
-        UI.banner('info', 'This is the one part only you can do',
-          'Every programme has its own required paperwork, and the rules differ by state. Give the system your lists once and it will chase the missing documents forever.') +
+      h += UI.banner('info', 'One is filled in as an example',
+        'NOW is here already so you can see the shape. Add the others yourself — COMP, and ' +
+        'whatever Mississippi runs. Give the system your lists once and it chases the missing ' +
+        'documents forever.');
 
-        '<div class="card"><div class="card-head"><h3>Programmes</h3>' +
-        '<span class="spacer"></span>' + UI.btn('Add a programme', { cls: 'btn--sm', icon: 'plus' }) + '</div>' +
-        '<div class="clist">' +
-          prog('NOW', 'Georgia', '9 documents') +
-          prog('COMP', 'Georgia', '9 documents') +
-          prog('IDD Community Supports', 'Mississippi', 'not set up yet') +
-        '</div></div>' +
-
-        '<div class="card"><div class="card-head"><h3>NOW · required documents</h3></div>' +
-        '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
-        '<th>Document</th><th>Expires?</th><th>Renew every</th><th>Required</th></tr></thead><tbody>' +
-        doc('Signed service agreement', 'Yes', '12 months') +
-        doc('Prior authorisation letter', 'Yes', 'per authorisation') +
-        doc('Individual Service Plan (ISP)', 'Yes', '12 months') +
-        doc('Physician order for services', 'Yes', '12 months') +
-        doc('Annual health assessment', 'Yes', '12 months') +
-        doc('Freedom of choice form', 'No', '—') +
-        doc('Rights and responsibilities', 'No', '—') +
-        doc('Emergency contact form', 'No', '—') +
-        '</tbody></table></div>' +
-        '<div class="card-foot">' + UI.btn('Add a document', { cls: 'btn--sm', icon: 'plus' }) +
-        '<span class="spacer"></span><span class="small muted">Change these any time — new rules, new list.</span></div></div>' +
-
-        '<div class="card"><div class="card-foot">' + UI.btn('Back', { goto: 'setup.team' }) +
+      /* the programmes */
+      h += '<div class="card"><div class="card-head"><h3>Programmes</h3>' +
         '<span class="spacer"></span>' +
-        '<button class="btn btn--primary" data-do="setup.programmes" data-goto="set.reminders">' + UI.icon('arrow') + 'Save the programmes</button>' +
+        UI.badge(progs.length + (progs.length === 1 ? ' programme' : ' programmes'), progs.length > 1 ? 'ok' : 'warn') +
+        '</div><div class="clist">';
+
+      progs.forEach(function (p) {
+        var on = sel && p.id === sel.id;
+        h += '<div class="clist-row" data-do="prog.select" data-id="' + UI.esc(p.id) + '"' +
+             (on ? ' style="background:var(--p-50)"' : '') + '>' +
+          '<span class="ava-sm ' + (p.agency && agencies[1] && p.agency === agencies[1].id ? 'c2' : '') + '">' +
+            UI.esc((p.agency ? DATA.agencyShort(p.agency) : '?').slice(0, 2).toUpperCase()) + '</span>' +
+          '<span style="display:flex;flex-direction:column;min-width:0">' +
+            '<span class="cl-n">' + UI.esc(p.name) + (p.seeded ? ' ' + UI.badge('Example', 'plum') : '') + '</span>' +
+            '<span class="cl-s">' + UI.esc(p.fullName || '') +
+              (p.agency ? (p.fullName ? ' · ' : '') + UI.esc(DATA.agencyShort(p.agency)) : '') + '</span>' +
+          '</span><span class="cl-sp"></span>' +
+          '<span class="small muted nowrap">' + (p.docs || []).length + ' document' +
+            ((p.docs || []).length === 1 ? '' : 's') + '</span>' +
+          (on ? UI.badge('Editing', 'info') : '') +
+          '<button class="btn btn--sm btn--ghost" data-do="prog.remove" data-id="' + UI.esc(p.id) + '">Remove</button>' +
+        '</div>';
+      });
+
+      if (!progs.length) {
+        h += '<div class="card-body"><div class="empty" style="padding:24px 18px">' +
+          UI.icon('doc', 'ei') + '<b>No programmes</b>' +
+          '<span>Add the first one below.</span></div></div>';
+      }
+      h += '</div></div>';
+
+      /* add a programme */
+      h += '<div class="card"><div class="card-head"><h3>Add a programme</h3></div>' +
+        '<div class="card-body"><div class="form-grid">' +
+          UI.field('Short name', { id:'p-name', value:'', placeholder:'COMP',
+            hint:'What your staff call it' }) +
+          UI.field('Full name', { id:'p-full', value:'', placeholder:'Comprehensive Supports Waiver' }) +
+          UI.field('Agency', { id:'p-agency', type:'select',
+            value:(agencies[0] || {}).id || '',
+            options: agencies.length
+              ? agencies.map(function (a) { return { value:a.id, label:a.short }; })
+              : [{ value:'', label:'no agencies yet' }] }) +
+          UI.field('Start from', { id:'p-copy', type:'select', value:'',
+            options: [{ value:'', label:'An empty list' }].concat(
+              progs.map(function (p) { return { value:p.id, label:'A copy of ' + p.name }; })) ,
+            hint:'Most programmes share a lot of paperwork' }) +
+        '</div>' +
+        '<div class="row"><span class="spacer"></span>' +
+          '<button class="btn btn--primary" data-do="prog.add">' + UI.icon('plus') + 'Add this programme</button>' +
         '</div></div></div>';
+
+      /* the selected programme's documents */
+      if (sel) {
+        h += '<div class="card"><div class="card-head"><h3>' + UI.esc(sel.name) + ' · required documents</h3>' +
+          '<span class="spacer"></span><span class="sub">' + (sel.docs || []).length + ' listed</span></div>';
+
+        if ((sel.docs || []).length) {
+          h += '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+            '<th>Document</th><th>Expires?</th><th>Renew every</th><th>Required</th><th></th>' +
+            '</tr></thead><tbody>';
+          sel.docs.forEach(function (d, i) {
+            h += '<tr data-row><td class="nm">' + UI.esc(d.name) + '</td>' +
+              '<td class="small">' + (d.expires ? 'Yes' : 'No') + '</td>' +
+              '<td class="small mono">' + UI.esc(d.period || '—') + '</td>' +
+              '<td>' + (d.required ? UI.badge('Required', 'plum') : UI.badge('Optional', 'neutral')) + '</td>' +
+              '<td class="right"><button class="btn btn--sm btn--ghost" data-do="doc.remove" ' +
+                'data-id="' + UI.esc(sel.id) + '" data-i="' + i + '">Remove</button></td></tr>';
+          });
+          h += '</tbody></table></div>';
+        } else {
+          h += '<div class="card-body"><div class="empty" style="padding:22px 18px">' +
+            UI.icon('doc', 'ei') + '<b>No documents listed yet</b>' +
+            '<span>Add what this programme requires.</span></div></div>';
+        }
+
+        h += '<div class="card-body" style="border-top:1px solid var(--border)">' +
+          '<div class="form-grid">' +
+            UI.field('Document name', { id:'d-name', span:true, value:'',
+              placeholder:'Behaviour support plan' }) +
+            UI.field('Does it expire?', { id:'d-expires', type:'select', value:'yes',
+              options:[{ value:'yes', label:'Yes — track a renewal date' },
+                       { value:'no',  label:'No — once it is on file it stays' }] }) +
+            UI.field('Renew every', { id:'d-period', value:'', placeholder:'12 months' }) +
+            UI.field('Required?', { id:'d-required', type:'select', value:'yes',
+              options:[{ value:'yes', label:'Required — flag the file if missing' },
+                       { value:'no',  label:'Optional' }] }) +
+          '</div>' +
+          '<div class="row"><span class="spacer"></span>' +
+            '<button class="btn btn--primary" data-do="doc.add" data-id="' + UI.esc(sel.id) + '">' +
+            UI.icon('plus') + 'Add to ' + UI.esc(sel.name) + '</button>' +
+          '</div></div></div>';
+      }
+
+      h += '<div class="card"><div class="card-foot">' +
+        UI.btn('Back', { goto: 'setup.team' }) + '<span class="spacer"></span>' +
+        (progs.length
+          ? '<button class="btn btn--primary" data-do="setup.programmes" data-goto="set.reminders">' +
+            UI.icon('arrow') + 'Continue with ' + progs.length + ' programme' + (progs.length === 1 ? '' : 's') + '</button>'
+          : '<button class="btn" disabled>Add one first</button>') +
+        '</div></div>';
+
+      return h + '</div>';
     }
   });
-
-  function prog(name, state, docs) {
-    return '<div class="clist-row"><span class="ava-sm ' + (state === 'Mississippi' ? 'c2' : '') + '">' +
-      UI.esc(state.slice(0, 2).toUpperCase()) + '</span>' +
-      '<span style="display:flex;flex-direction:column"><span class="cl-n">' + UI.esc(name) + '</span>' +
-      '<span class="cl-s">' + UI.esc(state) + '</span></span><span class="cl-sp"></span>' +
-      (docs.indexOf('not') === 0 ? UI.badge('Needs setting up', 'warn') : '<span class="small muted">' + docs + '</span>') +
-      UI.icon('arrow') + '</div>';
-  }
-
-  function doc(name, exp, period) {
-    return '<tr data-row><td class="nm">' + name + '</td><td class="small">' + exp + '</td>' +
-      '<td class="small mono">' + period + '</td><td>' + UI.badge('Required', 'plum') + '</td></tr>';
-  }
 
   /* ---------------- the empty dashboard ---------------- */
 

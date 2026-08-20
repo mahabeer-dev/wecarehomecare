@@ -39,8 +39,9 @@ You can also press **→** to advance, and **Esc** to close the screen index.
 
 ### It starts as a brand new install
 
-**On a fresh open there is exactly one account — Dawn's — and nothing else.** No agencies, no
-clients, no staff, no history. That is what gets handed over on day one.
+**On a fresh open there is one account — Dawn's — and one example waiver programme.** No
+agencies, no clients, no staff, no history. That is what gets handed over on day one: the
+account you sign in with, and NOW filled in so the shape of a programme is obvious.
 
 Renee and Yvonne do not exist until Dawn creates them in setup step 2. Until then the sign-in
 screen offers one account and says so.
@@ -80,7 +81,9 @@ before it:
 2. **Invite your team** — an empty form: name, email, role, agency, job title and a
    password you choose. Add as many as you need; each person then signs in with the
    password you set for them
-3. **Add your waiver programmes** — and the documents each requires
+3. **Add your waiver programmes** — NOW ships as a worked example so the shape is
+   obvious; you add COMP and the rest yourself, either from scratch or as a copy of an
+   existing one, then edit the document list
 4. **Check the reminder timings** — defaults ship with the product
 5. **Import your clients** — from a spreadsheet
 6. **Import your caregivers** — with their licences

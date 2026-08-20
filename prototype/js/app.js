@@ -541,6 +541,10 @@ var APP = (function () {
       }
       DB.add('agencies', { id: id, name: name, short: short, abbr: abbr, state: state });
       if (!S.agency) S.agency = id;
+      /* the example programme that shipped has no agency until one exists */
+      DB.all('programmes').forEach(function (p) {
+        if (!p.agency) DB.update('programmes', p.id, { agency: id });
+      });
       DB.log(user().name, 'Created agency "' + short + '"', 'Setup');
       toast('ok', short + ' created', 'Every record from now on belongs to one agency.');
       return 'stay';
@@ -611,18 +615,103 @@ var APP = (function () {
         n ? 'They can sign in with the passwords you set.' : 'You can add staff later in Settings.');
     },
 
-    'setup.programmes': function () {
-      if (DB.all('programmes').length) return;
-      var docs = DEMO.checklist;
-      var mine = DB.all('agencies');
-      var first = (mine[0] || {}).id, second = (mine[1] || mine[0] || {}).id;
-      DB.add('programmes', { id:'p-now',  name:'NOW',  agency:first,  docs: JSON.parse(JSON.stringify(docs)) });
-      DB.add('programmes', { id:'p-comp', name:'COMP', agency:first,  docs: JSON.parse(JSON.stringify(docs)) });
-      DB.add('programmes', { id:'p-idd',  name:'IDD Community Supports', agency:second, docs: [] });
-      DB.setupStep(3); S.vars.setupStep = 3;
-      DB.log(user().name, 'Added 3 waiver programmes', 'Setup');
-      toast('ok', 'Programmes saved', 'The system now knows which documents each one requires.');
+    'prog.select': function (S, el) {
+      S.vars.progId = el.getAttribute('data-id');
+      return 'stay';
     },
+
+    'prog.add': function (S) {
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+      var name = val('p-name');
+      if (!name) { toast('bad', 'Give the programme a name', 'Whatever your staff call it.'); return 'stay'; }
+
+      var exists = DB.all('programmes').some(function (p) {
+        return p.name.toLowerCase() === name.toLowerCase();
+      });
+      if (exists) { toast('bad', 'That programme already exists', 'Pick a different name.'); return 'stay'; }
+
+      var copyFrom = val('p-copy');
+      var docs = [];
+      if (copyFrom) {
+        var src = DB.get('programmes', copyFrom);
+        if (src) docs = JSON.parse(JSON.stringify(src.docs || []));
+      }
+
+      var p = DB.add('programmes', {
+        name: name,
+        fullName: val('p-full'),
+        agency: val('p-agency') || (DB.all('agencies')[0] || {}).id || null,
+        docs: docs
+      });
+      S.vars.progId = p.id;
+      DB.log(user().name, 'Added programme "' + name + '"' +
+        (docs.length ? ' with ' + docs.length + ' documents copied' : ''), 'Setup');
+      toast('ok', name + ' added', docs.length
+        ? docs.length + ' documents copied across. Edit the list below.'
+        : 'Now list the documents it requires.');
+      return 'stay';
+    },
+
+    'prog.remove': function (S, el) {
+      var id = el.getAttribute('data-id');
+      var p = DB.get('programmes', id);
+      DB.remove('programmes', id);
+      if (S.vars.progId === id) S.vars.progId = (DB.all('programmes')[0] || {}).id || null;
+      DB.log(user().name, 'Removed programme "' + ((p && p.name) || id) + '"', 'Setup');
+      return 'stay';
+    },
+
+    'doc.add': function (S, el) {
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+      var pid = el.getAttribute('data-id');
+      var p = DB.get('programmes', pid);
+      if (!p) return 'stay';
+
+      var name = val('d-name');
+      if (!name) { toast('bad', 'Name the document', 'What is it called on the paperwork?'); return 'stay'; }
+      if ((p.docs || []).some(function (d) { return d.name.toLowerCase() === name.toLowerCase(); })) {
+        toast('bad', 'That document is already listed', 'Each one only needs to appear once.');
+        return 'stay';
+      }
+
+      var expires = val('d-expires') !== 'no';
+      p.docs = p.docs || [];
+      p.docs.push({
+        name: name,
+        expires: expires,
+        period: expires ? (val('d-period') || '12 months') : '—',
+        required: val('d-required') !== 'no'
+      });
+      DB.update('programmes', pid, { docs: p.docs });
+      DB.log(user().name, 'Added "' + name + '" to ' + p.name, 'Setup');
+      toast('ok', 'Added to ' + p.name, expires
+        ? 'The system will chase its renewal date.'
+        : 'Once it is on file it stays on file.');
+      return 'stay';
+    },
+
+    'doc.remove': function (S, el) {
+      var pid = el.getAttribute('data-id');
+      var i = parseInt(el.getAttribute('data-i'), 10);
+      var p = DB.get('programmes', pid);
+      if (!p || !p.docs || isNaN(i)) return 'stay';
+      var gone = p.docs.splice(i, 1)[0];
+      DB.update('programmes', pid, { docs: p.docs });
+      DB.log(user().name, 'Removed "' + ((gone && gone.name) || '?') + '" from ' + p.name, 'Setup');
+      return 'stay';
+    },
+
+    'setup.programmes': function (S) {
+      if (!DB.all('programmes').length) {
+        toast('bad', 'Add at least one programme', 'Nothing can be checked without one.');
+        return 'stay';
+      }
+      if (DB.setupStep() < 3) { DB.setupStep(3); S.vars.setupStep = 3; }
+      var n = DB.all('programmes').length;
+      toast('ok', n + ' programme' + (n === 1 ? '' : 's') + ' saved',
+        'The system now knows which documents each one requires.');
+    },
+
     'setup.reminders': function () {
       if (DB.setupStep() < 4) { DB.setupStep(4); S.vars.setupStep = 4; }
       toast('ok', 'Reminder timings confirmed', 'Change them any time in Settings.');

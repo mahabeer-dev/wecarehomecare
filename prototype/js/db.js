@@ -69,10 +69,11 @@ var DB = (function () {
 
   function loadDemo() {
     state.agencies   = [clone(DEMO.agencies.ga), clone(DEMO.agencies.ms)];
+    var nowDocs = clone(fresh().programmes[0].docs);
     state.programmes = [
-      { id:'p-now',  name:'NOW',  agency:'ga', docs: clone(DEMO.checklist) },
-      { id:'p-comp', name:'COMP', agency:'ga', docs: clone(DEMO.checklist) },
-      { id:'p-idd',  name:'IDD Community Supports', agency:'ms', docs: [] }
+      { id:'p-now',  name:'NOW',  fullName:'New Options Waiver',            agency:'ga', docs: nowDocs },
+      { id:'p-comp', name:'COMP', fullName:'Comprehensive Supports Waiver', agency:'ga', docs: clone(nowDocs) },
+      { id:'p-idd',  name:'IDD Community Supports',                          agency:'ms', docs: clone(nowDocs).slice(0, 6) }
     ];
     if (state.users.length === 1) {
       state.users.push(clone(DEMO.users.admin));

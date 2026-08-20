@@ -32,7 +32,30 @@ var SEED = {
 
   /* Nothing else exists yet. */
   agencies:    [],
-  programmes:  [],
+
+  /* One worked example, so the shape of a programme is obvious.
+     Its agency is filled in as soon as the first agency is created.
+     Everything else — COMP, the Mississippi programme — the client adds. */
+  programmes: [
+    {
+      id: 'p-now',
+      name: 'NOW',
+      fullName: 'New Options Waiver',
+      agency: null,
+      seeded: true,
+      docs: [
+        { name: 'Signed service agreement',      expires: true,  period: '12 months',        required: true },
+        { name: 'Prior authorisation letter',    expires: true,  period: 'per authorisation', required: true },
+        { name: 'Individual Service Plan (ISP)', expires: true,  period: '12 months',        required: true },
+        { name: 'Physician order for services',  expires: true,  period: '12 months',        required: true },
+        { name: 'Annual health assessment',      expires: true,  period: '12 months',        required: true },
+        { name: 'Freedom of choice form',        expires: false, period: '—',                required: true },
+        { name: 'Rights and responsibilities',   expires: false, period: '—',                required: true },
+        { name: 'Emergency contact form',        expires: false, period: '—',                required: true },
+        { name: 'Transportation consent',        expires: false, period: '—',                required: false }
+      ]
+    }
+  ],
   clients:     [],
   caregivers:  [],
   credentials: {},

@@ -180,41 +180,59 @@
 
   screen('set.checklist', {
     title: 'Waiver checklist builder', nav: 'settings',
-    crumb: '<b>Settings</b> <span>›</span> Waiver checklists',
-    render: function () {
-      var h = '<div class="page">' + head('Waiver checklists', 'The required documents for each programme — edit when the rules change') + tabs('Waiver checklists');
+    crumb: '<b>Settings</b> <span>&rsaquo;</span> Waiver checklists',
+    render: function (S) {
+      var progs = DATA.PROGRAMMES;
+      var sel = DB.get('programmes', S.vars.progId) || progs[0] || null;
+
+      var h = '<div class="page">' +
+        head('Waiver checklists', 'The required documents for each programme — edit when the rules change') +
+        tabs('Waiver checklists');
+
+      if (!progs.length) {
+        h += UI.emptyModule({ icon:'doc', title:'No programmes set up',
+          body:'Each waiver programme carries its own list of required documents. Add your first one to begin.',
+          actions:[{ label:'Set up programmes', primary:true, goto:'setup.programmes' }] });
+        return h + '</div>';
+      }
 
       h += '<div class="card"><div class="filters">' +
-        '<span class="fchip on">NOW · Georgia</span><span class="fchip">COMP · Georgia</span>' +
-        '<span class="fchip">IDD Community Supports · Mississippi</span>' +
-        '<span class="spacer"></span>' + UI.btn('Add a programme', { cls: 'btn--sm', icon: 'plus' }) +
-        '</div><div class="tbl-wrap"><table class="tbl" style="min-width:820px"><thead><tr>' +
-        '<th>Required document</th><th>Has an expiry?</th><th>Renewal period</th><th>Required</th><th></th>' +
-        '</tr></thead><tbody>' +
-        cl('Signed service agreement', 'Yes', '12 months', true) +
-        cl('Prior authorisation letter', 'Yes', 'Per authorisation', true) +
-        cl('Individual Service Plan (ISP)', 'Yes', '12 months', true) +
-        cl('Freedom of choice form', 'No', '—', true) +
-        cl('Rights and responsibilities', 'No', '—', true) +
-        cl('Physician order for services', 'Yes', '12 months', true) +
-        cl('Annual health assessment', 'Yes', '12 months', true) +
-        cl('Emergency contact form', 'No', '—', true) +
-        cl('Transportation consent', 'No', '—', false) +
-        '</tbody></table></div>' +
-        '<div class="card-foot">' + UI.btn('Add a document', { cls: 'btn--sm', icon: 'plus' }) +
-        '<span class="spacer"></span><span class="small muted">Changes apply to new clients immediately and flag existing files at the next nightly check.</span>' +
-        '</div></div>';
+        progs.map(function (p) {
+          return '<span class="fchip' + (sel && p.id === sel.id ? ' on' : '') + '" ' +
+                 'data-do="prog.select" data-id="' + UI.esc(p.id) + '">' +
+                 UI.esc(p.name) + ' · ' + UI.esc(p.agency ? DATA.agencyShort(p.agency) : '—') + '</span>';
+        }).join('') +
+        '<span class="spacer"></span>' +
+        UI.btn('Add a programme', { cls:'btn--sm', icon:'plus', goto:'setup.programmes' }) +
+        '</div>';
+
+      if (sel && (sel.docs || []).length) {
+        h += '<div class="tbl-wrap"><table class="tbl" style="min-width:820px"><thead><tr>' +
+          '<th>Required document</th><th>Has an expiry?</th><th>Renewal period</th><th>Required</th><th></th>' +
+          '</tr></thead><tbody>';
+        sel.docs.forEach(function (d, i) {
+          h += '<tr data-row><td class="nm">' + UI.esc(d.name) + '</td>' +
+            '<td class="small">' + (d.expires ? 'Yes' : 'No') + '</td>' +
+            '<td class="small mono">' + UI.esc(d.period || '—') + '</td>' +
+            '<td>' + (d.required ? UI.badge('Required', 'plum') : UI.badge('Optional', 'neutral')) + '</td>' +
+            '<td class="right"><button class="btn btn--sm btn--ghost" data-do="doc.remove" ' +
+              'data-id="' + UI.esc(sel.id) + '" data-i="' + i + '">Remove</button></td></tr>';
+        });
+        h += '</tbody></table></div>';
+      } else {
+        h += '<div class="card-body"><div class="empty" style="padding:26px 18px">' +
+          UI.icon('doc', 'ei') + '<b>Nothing listed for ' + UI.esc(sel ? sel.name : '') + '</b>' +
+          '<span>Add the documents this programme requires.</span></div></div>';
+      }
+
+      h += '<div class="card-foot">' +
+        UI.btn('Add a document', { cls:'btn--sm', icon:'plus', goto:'setup.programmes' }) +
+        '<span class="spacer"></span><span class="small muted">Changes apply to new clients immediately ' +
+        'and flag existing files at the next nightly check.</span></div></div>';
 
       return h + '</div>';
     }
   });
-
-  function cl(name, exp, period, req) {
-    return '<tr data-row><td class="nm">' + name + '</td><td class="small">' + exp + '</td>' +
-      '<td class="small mono">' + period + '</td>' +
-      '<td>' + (req ? UI.badge('Required', 'plum') : UI.badge('Optional', 'neutral')) + '</td>' +
-      '<td class="right"><span class="linkish small">Edit</span></td></tr>';
-  }
 
   screen('set.intervals', {
     title: 'Visit intervals', nav: 'settings',
