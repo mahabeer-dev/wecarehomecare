@@ -169,6 +169,17 @@ var APP = (function () {
   var autoTimer = null;
 
   function render() {
+    /* You cannot be signed in as a role that has no account — after a wipe,
+       fall back to whoever actually exists. */
+    var roles = {};
+    DB.all('users').forEach(function (u) { roles[u.role] = true; });
+    if (!roles[S.role]) {
+      S.role = DB.all('users').length ? DB.all('users')[0].role : 'superadmin';
+      S.vars.loginAs = null;
+    }
+    if (S.agency && !DATA.AGENCIES[S.agency]) S.agency = (DB.all('agencies')[0] || {}).id || null;
+    if (!S.agency && DB.all('agencies').length) S.agency = DB.all('agencies')[0].id;
+
     var def = currentDef();
 
     /* loading screens move on by themselves, like real ones */
@@ -243,14 +254,6 @@ var APP = (function () {
       '<img src="assets/logo.svg" width="34" height="34" alt="">' +
       '<span class="bm-txt"><span class="bm-1">We Care Home Care</span>' +
       '<span class="bm-2">Operations</span></span></div>';
-
-    if (DB.setupStep() < 7) {
-      h += '<div class="nav-label">Set up</div>' +
-           '<button class="nav-item' + (def.nav === 'setup' ? ' is-active' : '') + '" data-goto="setup.checklist">' +
-           UI.icon('check') + '<span>Getting started</span>' +
-           '<span class="pill" style="background:var(--g-300);color:#3A2A05">' +
-             (7 - Math.min(7, DB.setupStep())) + '</span></button>';
-    }
 
     for (var i = 0; i < NAV.length; i++) {
       var n = NAV[i];
@@ -499,23 +502,73 @@ var APP = (function () {
      Buttons carrying data-do="name" run one of these before
      navigating. This is where the prototype actually saves.  */
 
+  /* The demo records are written against 'ga' and 'ms'. The agencies Dawn
+     actually created have whatever ids her short names produced, so imported
+     records are remapped onto them before they are stored. */
+  function remapAgencies(records) {
+    var mine = DB.all('agencies');
+    if (!mine.length) return records;
+    var map = { ga: mine[0].id, ms: (mine[1] || mine[0]).id };
+    records.forEach(function (r) {
+      if (r.agency && map[r.agency]) r.agency = map[r.agency];
+    });
+    return records;
+  }
+
+  function copyDemo(list) { return remapAgencies(JSON.parse(JSON.stringify(list))); }
+
   var ACTIONS = {
-    'setup.agencies': function () {
-      if (DB.all('agencies').length) return;
-      DB.add('agencies', { id:'ga', name:'We Care Home Care — Georgia', short:'Georgia', abbr:'GA' });
-      DB.add('agencies', { id:'ms', name:'We Care Home Care — Mississippi', short:'Mississippi', abbr:'MS' });
-      DB.setupStep(1); S.vars.setupStep = 1; S.agency = 'ga';
-      DB.log(user().name, 'Created 2 agencies', 'Setup');
-      toast('ok', 'Agencies saved', 'Georgia and Mississippi. Every record now belongs to one of them.');
+    /* Add one agency from what was typed into the form. */
+    'agency.add': function (S) {
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+      var name  = val('ag-name');
+      var short = val('ag-short') || name;
+      var state = val('ag-state');
+      if (!name) {
+        toast('bad', 'Give the agency a name', 'The name is the only thing that is required.');
+        return 'stay';
+      }
+      var abbr = (val('ag-abbr') || short.slice(0, 2)).toUpperCase();
+      var id = short.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || ('ag-' + DB.all('agencies').length);
+      if (DB.get('agencies', id)) {
+        toast('bad', 'That agency already exists', 'Pick a different short name.');
+        return 'stay';
+      }
+      DB.add('agencies', { id: id, name: name, short: short, abbr: abbr, state: state });
+      if (!S.agency) S.agency = id;
+      DB.log(user().name, 'Created agency "' + short + '"', 'Setup');
+      toast('ok', short + ' created', 'Every record from now on belongs to one agency.');
+      return 'stay';
+    },
+
+    'agency.remove': function (S, el) {
+      var id = el.getAttribute('data-id');
+      var a = DB.get('agencies', id);
+      DB.remove('agencies', id);
+      if (S.agency === id) S.agency = (DB.all('agencies')[0] || {}).id || null;
+      DB.log(user().name, 'Removed agency "' + ((a && a.short) || id) + '"', 'Setup');
+      return 'stay';
+    },
+
+    'setup.agencies': function (S) {
+      if (!DB.all('agencies').length) {
+        toast('bad', 'Add at least one agency first', 'Nothing can be recorded until one exists.');
+        return 'stay';
+      }
+      if (DB.setupStep() < 1) { DB.setupStep(1); S.vars.setupStep = 1; }
+      if (!S.agency) S.agency = DB.all('agencies')[0].id;
+      toast('ok', DB.all('agencies').length + ' agenc' + (DB.all('agencies').length === 1 ? 'y' : 'ies') + ' saved',
+        'You can add more later in Settings.');
     },
     'setup.team': function () {
       if (DB.all('users').length > 1) return;
+      var first = (DB.all('agencies')[0] || {}).id || null;
       DB.add('users', { id:'u-admin', name:'Renee Alcott', initials:'RA',
         email:'renee.alcott@wecarehomecare.com', role:'admin', title:'Office Manager',
-        agency:'ga', status:'Invited' });
+        agency:first, status:'Invited' });
       DB.add('users', { id:'u-nurse', name:'Yvonne Pryce', initials:'YP',
         email:'yvonne.pryce@wecarehomecare.com', role:'nurse', title:'Registered Nurse',
-        agency:'ga', status:'Invited' });
+        agency:first, status:'Invited' });
       DB.setupStep(2); S.vars.setupStep = 2;
       DB.log(user().name, 'Invited 2 users', 'Setup');
       toast('ok', 'Invitations sent', 'Renee and Yvonne can now sign in. Their accounts did not exist until now.');
@@ -523,9 +576,11 @@ var APP = (function () {
     'setup.programmes': function () {
       if (DB.all('programmes').length) return;
       var docs = DEMO.checklist;
-      DB.add('programmes', { id:'p-now',  name:'NOW',  agency:'ga', docs: JSON.parse(JSON.stringify(docs)) });
-      DB.add('programmes', { id:'p-comp', name:'COMP', agency:'ga', docs: JSON.parse(JSON.stringify(docs)) });
-      DB.add('programmes', { id:'p-idd',  name:'IDD Community Supports', agency:'ms', docs: [] });
+      var mine = DB.all('agencies');
+      var first = (mine[0] || {}).id, second = (mine[1] || mine[0] || {}).id;
+      DB.add('programmes', { id:'p-now',  name:'NOW',  agency:first,  docs: JSON.parse(JSON.stringify(docs)) });
+      DB.add('programmes', { id:'p-comp', name:'COMP', agency:first,  docs: JSON.parse(JSON.stringify(docs)) });
+      DB.add('programmes', { id:'p-idd',  name:'IDD Community Supports', agency:second, docs: [] });
       DB.setupStep(3); S.vars.setupStep = 3;
       DB.log(user().name, 'Added 3 waiver programmes', 'Setup');
       toast('ok', 'Programmes saved', 'The system now knows which documents each one requires.');
@@ -536,24 +591,24 @@ var APP = (function () {
     },
     'import.clients': function () {
       if (DB.all('clients').length) return;
-      DB.addMany('clients', JSON.parse(JSON.stringify(DEMO.clients)));
+      DB.addMany('clients', copyDemo(DEMO.clients));
       DB.setupStep(5); S.vars.setupStep = 5;
       DB.log(user().name, 'Imported ' + DEMO.clients.length + ' clients', 'Bulk import');
       toast('ok', DEMO.clients.length + ' clients imported', 'They are saved. Refresh the page and they will still be here.');
     },
     'import.caregivers': function () {
       if (DB.all('caregivers').length) return;
-      DB.addMany('caregivers', JSON.parse(JSON.stringify(DEMO.caregivers)));
+      DB.addMany('caregivers', copyDemo(DEMO.caregivers));
       DB.setCollection('credentials', JSON.parse(JSON.stringify(DEMO.credentials)));
       DB.setupStep(6); S.vars.setupStep = 6;
       DB.log(user().name, 'Imported ' + DEMO.caregivers.length + ' caregivers', 'Bulk import');
       toast('ok', DEMO.caregivers.length + ' caregivers imported', 'With their licences and training dates.');
     },
     'setup.finish': function () {
-      DB.addMany('auths',     JSON.parse(JSON.stringify(DEMO.auths)));
-      DB.addMany('usage',     JSON.parse(JSON.stringify(DEMO.usage)));
-      DB.addMany('oversight', JSON.parse(JSON.stringify(DEMO.oversight)));
-      DB.addMany('isp',       JSON.parse(JSON.stringify(DEMO.isp)));
+      DB.addMany('auths',     copyDemo(DEMO.auths));
+      DB.addMany('usage',     copyDemo(DEMO.usage));
+      DB.addMany('oversight', copyDemo(DEMO.oversight));
+      DB.addMany('isp',       copyDemo(DEMO.isp));
       DB.setupStep(7); S.vars.setupStep = 7;
       DB.log(user().name, 'Added authorisations — setup complete', 'Setup');
       toast('ok', 'Setup complete', 'From tomorrow the dashboard starts telling you what needs attention.');
@@ -613,7 +668,10 @@ var APP = (function () {
     var doer = t.closest('[data-do]');
     if (doer) {
       var fn = ACTIONS[doer.getAttribute('data-do')];
-      if (fn) { fn(S); }
+      if (fn) {
+        var result = fn(S, doer);
+        if (result === 'stay') { render(); return; }   /* re-render, do not navigate */
+      }
     }
 
     /* --- choosing which account to sign in as --- */

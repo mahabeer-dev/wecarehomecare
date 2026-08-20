@@ -65,7 +65,9 @@
     title: 'Caregiver — Tanya Fields', nav: 'caregivers',
     crumb: 'Caregivers <span>›</span> <b>Tanya Fields</b>',
     render: function () {
-      var creds = DATA.CREDENTIALS.g1;
+      var staff = DATA.CAREGIVERS[0];
+      if (!staff) return UI.noRecord('caregivers yet', 'Back to caregivers', 'cg.list');
+      var creds = (DATA.CREDENTIALS || {})[staff.id] || (DATA.CREDENTIALS || {}).g1 || [];
 
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt">' +

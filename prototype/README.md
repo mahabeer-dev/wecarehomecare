@@ -72,11 +72,12 @@ stat tiles — click any of them and you go somewhere. Nothing validates and not
 
 ### The seven setup steps
 
-A **Getting started** checklist sits at the top of the sidebar until it is finished. The order
-is real — each step needs the one before it:
+The **Getting started** checklist sits on the dashboard until it is finished — there is
+nothing else the dashboard could honestly show. The order is real; each step needs the one
+before it:
 
-1. **Name your agencies** — Georgia and Mississippi
-2. **Invite your team** — this is where Renee's and Yvonne's accounts come into existence
+1. **Name your agencies** — you type them in, as many as you run
+2. **Invite your team** — this is where the other accounts come into existence
 3. **Add your waiver programmes** — and the documents each requires
 4. **Check the reminder timings** — defaults ship with the product
 5. **Import your clients** — from a spreadsheet

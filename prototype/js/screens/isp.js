@@ -7,7 +7,13 @@
   screen('isp.list', {
     title: 'ISP progress list', nav: 'isp',
     crumb: '<b>ISP progress</b>',
-    render: function () {
+    render: function (S) {
+      if (!DATA.ISP.length) return '<div class="page">' +
+        '<div class="page-head"><span class="ph-txt"><h1>Monthly goal progress</h1>' +
+        '<span class="sub">Nothing here yet</span></span></div>' +
+        UI.emptyModule({ icon:'chart', title:'No goals being tracked',
+          body:'The plans themselves live in the EMR. Once clients exist, record a progress percentage against each goal once a month.',
+          actions:[{ label:'Go to clients', primary:true, goto:'clients.list' }] }) + '</div>';
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt"><h1>Monthly goal progress</h1>' +
         '<span class="sub">The plans live in the EMR. Here we only track how each goal is going, month by month.</span></span>' +
@@ -72,6 +78,7 @@
     crumb: 'ISP progress <span>›</span> <b>Maria Lopez</b>',
     render: function () {
       var g = DATA.ISP[0];
+      if (!g) return UI.noRecord('goals recorded', 'Back to ISP progress', 'isp.list');
 
       var h = '<div class="page">';
       h += '<div class="page-head"><span class="ph-txt">' +
@@ -104,9 +111,10 @@
       h += '</div><div class="grid" style="gap:16px">';
 
       h += '<div class="card"><div class="card-head"><h3>Other goal</h3></div><div class="card-body">' +
-        '<b class="small">Attend a community activity once per week</b>' +
-        UI.bars(DATA.ISP[1].months) +
-        '<span class="small muted">Still improving — the drop is specific to the meal goal.</span>' +
+        (DATA.ISP[1]
+          ? '<b class="small">' + UI.esc(DATA.ISP[1].goal) + '</b>' + UI.bars(DATA.ISP[1].months) +
+            '<span class="small muted">Still improving — the drop is specific to the meal goal.</span>'
+          : '<span class="small muted">This client has only one goal being tracked.</span>') +
       '</div></div>';
 
       h += '<div class="card"><div class="card-head"><h3>Alert rules</h3></div><div class="card-body" style="gap:9px">' +

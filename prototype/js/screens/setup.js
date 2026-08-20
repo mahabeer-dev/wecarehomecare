@@ -115,37 +115,72 @@
 
   screen('setup.agencies', {
     title: 'Set up · agencies', nav: 'dash',
-    crumb: 'Getting started <span>›</span> <b>Agencies</b>',
-    render: function () {
-      return '<div class="page page--narrow">' +
+    crumb: 'Getting started <span>&rsaquo;</span> <b>Agencies</b>',
+    render: function (S) {
+      var mine = DB.all('agencies');
+
+      var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt">' +
         '<span class="eyebrow-m">Step 1 of 7</span><h1>Your agencies</h1>' +
-        '<span class="sub">Every record in the system belongs to exactly one of these. They never mix.</span>' +
-        '</span></div>' +
+        '<span class="sub">Add one for each company you run. Every record in the system ' +
+        'belongs to exactly one of them, and they never mix.</span>' +
+        '</span></div>';
 
-        '<div class="card"><div class="card-head"><h3>Agency one</h3></div><div class="card-body">' +
-        '<div class="form-grid">' +
-          UI.field('Name', { value: 'We Care Home Care — Georgia' }) +
-          UI.field('Short name', { value: 'Georgia', hint: 'Shown in the header and on reports' }) +
-          UI.field('State', { type: 'select', value: 'Georgia' }) +
-          UI.field('Logo for PDF exports', { value: 'wechc-georgia.png' }) +
-        '</div></div></div>' +
-
-        '<div class="card"><div class="card-head"><h3>Agency two</h3></div><div class="card-body">' +
-        '<div class="form-grid">' +
-          UI.field('Name', { value: 'We Care Home Care — Mississippi' }) +
-          UI.field('Short name', { value: 'Mississippi' }) +
-          UI.field('State', { type: 'select', value: 'Mississippi' }) +
-          UI.field('Logo for PDF exports', { value: 'wechc-mississippi.png' }) +
-        '</div></div></div>' +
-
-        UI.banner('info', 'You can add a third later without rebuilding anything',
-          'Only you will ever see both at once. Everyone else is locked to the one they work for.') +
-
-        '<div class="card"><div class="card-foot">' + UI.btn('Back', { goto: 'setup.checklist' }) +
+      /* what has been created so far */
+      h += '<div class="card"><div class="card-head"><h3>Agencies you have added</h3>' +
         '<span class="spacer"></span>' +
-        '<button class="btn btn--primary" data-do="setup.agencies" data-goto="setup.team">' + UI.icon('arrow') + 'Save the agencies</button>' +
+        (mine.length ? UI.badge(mine.length + (mine.length === 1 ? ' agency' : ' agencies'), 'ok')
+                     : UI.badge('None yet', 'warn')) + '</div>';
+
+      if (mine.length) {
+        h += '<div class="clist">';
+        mine.forEach(function (a) {
+          h += '<div class="clist-row" style="cursor:default">' +
+            '<span class="ava-sm">' + UI.esc(a.abbr) + '</span>' +
+            '<span style="display:flex;flex-direction:column;min-width:0">' +
+              '<span class="cl-n">' + UI.esc(a.name) + '</span>' +
+              '<span class="cl-s">' + UI.esc(a.short) + (a.state ? ' · ' + UI.esc(a.state) : '') + '</span>' +
+            '</span><span class="cl-sp"></span>' +
+            '<button class="btn btn--sm btn--ghost" data-do="agency.remove" data-id="' + UI.esc(a.id) + '">Remove</button>' +
+          '</div>';
+        });
+        h += '</div>';
+      } else {
+        h += '<div class="card-body"><div class="empty" style="padding:26px 18px">' +
+          UI.icon('people', 'ei') + '<b>Nothing added yet</b>' +
+          '<span>Fill in the form below and press Add.</span></div></div>';
+      }
+      h += '</div>';
+
+      /* the form */
+      h += '<div class="card"><div class="card-head"><h3>Add an agency</h3></div>' +
+        '<div class="card-body"><div class="form-grid">' +
+          UI.field('Full name', { id:'ag-name', span:true, value:'',
+            placeholder:'We Care Home Care — Georgia',
+            hint:'How it appears on reports and PDF exports' }) +
+          UI.field('Short name', { id:'ag-short', value:'', placeholder:'Georgia',
+            hint:'Shown in the header switcher' }) +
+          UI.field('State', { id:'ag-state', value:'', placeholder:'Georgia' }) +
+          UI.field('Initials', { id:'ag-abbr', value:'', placeholder:'GA',
+            hint:'Two letters, used on the small badges' }) +
+        '</div>' +
+        '<div class="row"><span class="spacer"></span>' +
+          '<button class="btn btn--primary" data-do="agency.add">' + UI.icon('plus') + 'Add this agency</button>' +
         '</div></div></div>';
+
+      h += UI.banner('info', 'Add as many as you run',
+        'Two to begin with is typical, but there is no limit and a new one can be added later ' +
+        'without touching anything that already exists.');
+
+      h += '<div class="card"><div class="card-foot">' +
+        UI.btn('Back', { goto: 'dash.home' }) + '<span class="spacer"></span>' +
+        (mine.length
+          ? '<button class="btn btn--primary" data-do="setup.agencies" data-goto="setup.team">' +
+            UI.icon('arrow') + 'Continue with ' + mine.length + ' agenc' + (mine.length === 1 ? 'y' : 'ies') + '</button>'
+          : '<button class="btn" disabled>Add one first</button>') +
+        '</div></div>';
+
+      return h + '</div>';
     }
   });
 
