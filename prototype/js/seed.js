@@ -2,8 +2,9 @@
    SEED — a brand new installation.
 
    This is everything a fresh platform contains on the very first
-   morning: one account, and some sensible defaults. No agencies,
-   no clients, no staff, no history. Dawn creates all of that.
+   morning: one account, one agency to hang the first records on,
+   and some sensible defaults. No clients, no staff, no history.
+   Dawn creates all of that, and can rename or remove Georgia.
 
    It is pure data, no logic. It lives in a .js file rather than a
    .json one because opening the prototype straight from disk
@@ -30,18 +31,29 @@ var SEED = {
     }
   ],
 
-  /* Nothing else exists yet. */
-  agencies:    [],
+  /* Georgia is set up at handover so the system is usable on the first
+     morning. A second agency — Mississippi — is added the same way any
+     other would be, and this one can be renamed or removed. */
+  agencies: [
+    {
+      id: 'georgia',
+      name: 'We Care Home Care — Georgia',
+      short: 'Georgia',
+      abbr: 'GA',
+      state: 'Georgia',
+      seeded: true
+    }
+  ],
 
   /* One worked example, so the shape of a programme is obvious.
-     Its agency is filled in as soon as the first agency is created.
+     It belongs to Georgia, the agency that ships with the platform.
      Everything else — COMP, the Mississippi programme — the client adds. */
   programmes: [
     {
       id: 'p-now',
       name: 'NOW',
       fullName: 'New Options Waiver',
-      agency: null,
+      agency: 'georgia',
       seeded: true,
       docs: [
         { name: 'Signed service agreement',      expires: true,  period: '12 months',        required: true },

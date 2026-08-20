@@ -121,12 +121,12 @@
       var h = '<div class="page page--narrow">' +
         '<div class="page-head"><span class="ph-txt">' +
         '<span class="eyebrow-m">Step 1 of 6</span><h1>Your agencies</h1>' +
-        '<span class="sub">Add one for each company you run. Every record in the system ' +
-        'belongs to exactly one of them, and they never mix.</span>' +
+        '<span class="sub">Georgia is already here. Add one more for each company you run — ' +
+        'every record belongs to exactly one agency, and they never mix.</span>' +
         '</span></div>';
 
       /* what has been created so far */
-      h += '<div class="card"><div class="card-head"><h3>Agencies you have added</h3>' +
+      h += '<div class="card"><div class="card-head"><h3>Your agencies</h3>' +
         '<span class="spacer"></span>' +
         (mine.length ? UI.badge(mine.length + (mine.length === 1 ? ' agency' : ' agencies'), 'ok')
                      : UI.badge('None yet', 'warn')) + '</div>';
@@ -138,7 +138,9 @@
             '<span class="ava-sm">' + UI.esc(a.abbr) + '</span>' +
             '<span style="display:flex;flex-direction:column;min-width:0">' +
               '<span class="cl-n">' + UI.esc(a.name) + '</span>' +
-              '<span class="cl-s">' + UI.esc(a.short) + (a.state ? ' · ' + UI.esc(a.state) : '') + '</span>' +
+              '<span class="cl-s">' + UI.esc(a.short) +
+                (a.state && a.state !== a.short ? ' · ' + UI.esc(a.state) : '') +
+                (a.seeded ? ' · set up at handover' : '') + '</span>' +
             '</span><span class="cl-sp"></span>' +
             '<button class="btn btn--sm btn--ghost" data-do="agency.remove" data-id="' + UI.esc(a.id) + '">Remove</button>' +
           '</div>';
@@ -155,12 +157,12 @@
       h += '<div class="card"><div class="card-head"><h3>Add an agency</h3></div>' +
         '<div class="card-body"><div class="form-grid">' +
           UI.field('Full name', { id:'ag-name', span:true, value:'',
-            placeholder:'We Care Home Care — Georgia',
+            placeholder:'We Care Home Care — Mississippi',
             hint:'How it appears on reports and PDF exports' }) +
-          UI.field('Short name', { id:'ag-short', value:'', placeholder:'Georgia',
+          UI.field('Short name', { id:'ag-short', value:'', placeholder:'Mississippi',
             hint:'Shown in the header switcher' }) +
-          UI.field('State', { id:'ag-state', value:'', placeholder:'Georgia' }) +
-          UI.field('Initials', { id:'ag-abbr', value:'', placeholder:'GA',
+          UI.field('State', { id:'ag-state', value:'', placeholder:'Mississippi' }) +
+          UI.field('Initials', { id:'ag-abbr', value:'', placeholder:'MS',
             hint:'Two letters, used on the small badges' }) +
         '</div>' +
         '<div class="row"><span class="spacer"></span>' +
@@ -168,8 +170,8 @@
         '</div></div></div>';
 
       h += UI.banner('info', 'Add as many as you run',
-        'Two to begin with is typical, but there is no limit and a new one can be added later ' +
-        'without touching anything that already exists.');
+        'Georgia came with the platform and can be renamed or removed like any other. ' +
+        'There is no limit, and a new one can be added later without touching what already exists.');
 
       h += '<div class="card"><div class="card-foot">' +
         UI.btn('Back', { goto: 'dash.home' }) + '<span class="spacer"></span>' +

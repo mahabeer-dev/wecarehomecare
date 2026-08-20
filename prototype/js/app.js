@@ -21,7 +21,7 @@ var APP = (function () {
     toasts: []
   };
 
-  var DEFAULTS = { role: 'admin', agency: 'ga', screen: 'auth.login', flow: null, step: 0 };
+  var DEFAULTS = { role: 'admin', agency: null, screen: 'auth.login', flow: null, step: 0 };
 
   /* ---------------- state ---------------- */
 
@@ -42,7 +42,7 @@ var APP = (function () {
 
   function reset() {
     S.role = DEFAULTS.role;
-    S.agency = DEFAULTS.agency;
+    S.agency = DEFAULTS.agency || (DB.all('agencies')[0] || {}).id || null;
     S.screen = DEFAULTS.screen;
     S.flow = null;
     S.step = 0;
@@ -591,6 +591,15 @@ var APP = (function () {
     'agency.remove': function (S, el) {
       var id = el.getAttribute('data-id');
       var a = DB.get('agencies', id);
+      var holds = ['clients', 'caregivers', 'incidents', 'auths', 'hosps'].reduce(function (n, coll) {
+        return n + DB.all(coll).filter(function (r) { return r.agency === id; }).length;
+      }, 0);
+      if (holds) {
+        toast('bad', 'That agency has records',
+          (a ? a.short : 'It') + ' holds ' + holds + ' record' + (holds === 1 ? '' : 's') +
+          '. Move or remove those first — nothing is deleted behind your back.');
+        return 'stay';
+      }
       DB.remove('agencies', id);
       if (S.agency === id) S.agency = (DB.all('agencies')[0] || {}).id || null;
       DB.log(user().name, 'Removed agency "' + ((a && a.short) || id) + '"', 'Setup');
@@ -1227,9 +1236,10 @@ var APP = (function () {
       else if (chromeBtn.id === 'c-wipe') {
         DB.startAgain();
         S.flow = null; S.step = 0; S.vars = { loginAs: 'owner', setupStep: 0 };
-        S.role = 'superadmin'; S.agency = null;
+        S.role = 'superadmin'; S.agency = (DB.all('agencies')[0] || {}).id || null;
         S.screen = 'auth.login';
-        toast('info', 'Back to a brand new install', 'One account, nothing else. Exactly what is handed over.');
+        toast('info', 'Back to a brand new install',
+          'One account and Georgia. Exactly what is handed over.');
         render();
       }
       else if (chromeBtn.id === 'c-demo') {

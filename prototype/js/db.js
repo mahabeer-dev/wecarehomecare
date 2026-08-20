@@ -21,7 +21,7 @@ var DB = (function () {
   /* Bump this whenever the shape of the data changes. A stored copy from an
      older build is discarded rather than merged, because a half-old, half-new
      store looks like working data and is not. */
-  var SCHEMA = 5;
+  var SCHEMA = 6;
 
   var state = null;
   var storageWorks = true;
@@ -81,8 +81,14 @@ var DB = (function () {
     writeStore();
   }
 
+  /* An untouched install. Georgia ships with the platform, so its presence
+     is not evidence that anybody has done anything yet — an agency the user
+     added is. */
   function isFresh() {
-    return !state.agencies.length && !state.clients.length && state.users.length === 1;
+    return !state.clients.length &&
+           !state.caregivers.length &&
+           state.users.length === 1 &&
+           state.agencies.every(function (a) { return a.seeded; });
   }
 
   /* ---------------- demo data ---------------- */

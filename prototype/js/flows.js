@@ -9,7 +9,7 @@ FLOWS['dayone'] = {
     { screen: 'auth.login',        label: 'Dawn signs in for the very first time',
       role: 'superadmin', agency: 'ga', data: 'fresh', setupStep: 0 },
     { screen: 'setup.welcome',     label: 'What has to happen before it is useful' },
-    { screen: 'setup.checklist',   label: 'Step 1 — name the two agencies' },
+    { screen: 'setup.checklist',   label: 'Step 1 — add Mississippi alongside Georgia' },
     { screen: 'setup.agencies',    label: 'Step 2 — invite Renee and Yvonne' },
     { screen: 'setup.team',        label: 'Step 3 — add the waiver programmes' },
     { screen: 'setup.programmes',  label: 'Step 4 — check the reminder timings' },
