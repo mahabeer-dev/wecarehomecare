@@ -37,9 +37,12 @@
     });
 
     DATA.inAgency(DATA.HOSPS, agency).forEach(function (hp) {
-      if (!hp.visitDue || hp.visitDue === '—') return;
-      out.push({ date:hp.visitDue, title:'Nurse follow-up visit', sub:hp.clientName + ' · ' + hp.nurse,
-                 tone: hp.visitStatus === 'Overdue' ? 'bad' : 'warn', goto:'hosp.visit' });
+      if (!hp.visitDue || hp.visitDue === '\u2014') return;
+      var st = DATA.hospState(hp);
+      if (st.key !== 'visitDue' && st.key !== 'visitLate') return;   /* done ones are not still due */
+      out.push({ date:hp.visitDue, title:'Nurse follow-up visit',
+                 sub:hp.clientName + ' · ' + (hp.nurse || '—'),
+                 tone: st.key === 'visitLate' ? 'bad' : 'warn', goto:'hosp.detail' });
     });
 
     DATA.inAgency(DATA.CLIENTS, agency).forEach(function (c) {

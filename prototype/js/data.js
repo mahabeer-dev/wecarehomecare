@@ -157,7 +157,9 @@ var DATA = (function () {
     }).length;
     if (open) out.push({ label: open + (open === 1 ? ' open incident' : ' open incidents'), kind: 'warn' });
 
-    if (DB.all('hosps').some(function (h) { return h.client === c.id && /^Open/.test(h.status || ''); })) {
+    if (DB.all('hosps').some(function (h) {
+      return h.client === c.id && hospState(h).key === 'in';
+    })) {
       out.push({ label: 'In hospital', kind: 'info' });
     }
 
@@ -228,6 +230,53 @@ var DATA = (function () {
     if (limit === undefined) limit = 2;
     return { month: key, monthLabel: monthName(key), count: n, limit: limit, over: n > limit };
   }
+
+  /* ---------------- hospital stays ----------------
+     A stay moves along a chain: admitted, discharged, nurse visit, any
+     reviews the visit asked for, then closed. Where it stands is worked
+     out from which of those exist. */
+
+  function hospReviews(hospId) {
+    return DB.all('tasks').filter(function (t) { return t.linkedId === hospId; });
+  }
+
+  function hospState(hp) {
+    if (!hp) return { key:'in', label:'In hospital', tone:'info', days:0 };
+    if (hp.closed) return { key:'closed', label:'Closed', tone:'ok', days:0 };
+
+    if (!hp.discharged || hp.discharged === '\u2014') {
+      return { key:'in', label:'In hospital', tone:'info', days:0 };
+    }
+
+    if (hp.visitRequired && !hp.visit && !hp.visitWaived) {
+      var late = daysBetween(UI.toISO(hp.visitDue), todayISO());
+      if (hp.visitDue && hp.visitDue !== '\u2014' && late > 0) {
+        return { key:'visitLate', label:'Nurse visit overdue', tone:'bad', days:late };
+      }
+      return { key:'visitDue', label:'Nurse visit due', tone:'warn', days:0 };
+    }
+
+    var open = hospReviews(hp.id).filter(function (t) { return t.status !== 'Completed'; }).length;
+    if (open) return { key:'reviews', label:'Reviews outstanding', tone:'warn', days:0, open:open };
+
+    return { key:'ready', label:'Ready to close', tone:'ok', days:0 };
+  }
+
+  /* How many stays this client has had in the same month, against the
+     threshold the Super Admin set. */
+  function hospTally(clientId, when) {
+    var key = monthOf(when);
+    var n = DB.all('hosps').filter(function (h) {
+      return h.client === clientId && monthOf(h.admitted) === key;
+    }).length;
+    var limit = (DB.settings().thresholds || {}).qiFromHospitalStays;
+    if (limit === undefined) limit = 2;
+    return { month: key, monthLabel: monthName(key), count: n, limit: limit, over: n > limit };
+  }
+
+  API.hospState = hospState;
+  API.hospReviews = hospReviews;
+  API.hospTally = hospTally;
 
   API.incidentState = incidentState;
   API.incidentsFor = incidentsFor;

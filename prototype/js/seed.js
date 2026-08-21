@@ -111,6 +111,7 @@ var SEED = {
       budgetAlerts: [75, 90, 100],
       ispDropPoints: 20,
       incidentChaseDays: 7,
+      dischargeVisitDays: 3,
       escalateAfterDays: 7,
       nurseVisitAfterDischarge: true
     },

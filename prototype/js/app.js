@@ -541,14 +541,14 @@ var APP = (function () {
      Buttons carrying data-do="name" run one of these before
      navigating. This is where the prototype actually saves.  */
 
-  /* A quality item opens itself once a client passes the monthly threshold.
-     One per client per month — recording a fourth incident does not open a fourth item. */
-  function openQIifOver(rec) {
-    var tally = DATA.incidentTally(rec.client, rec.when);
+  /* Repeat hospital stays raise a quality item the same way repeat
+     incidents do. One per client per month. */
+  function openQIifOverStays(rec) {
+    var tally = DATA.hospTally(rec.client, rec.admitted);
     if (!tally.over) return;
 
     var exists = DB.all('qi').some(function (q) {
-      return q.client === rec.client && q.month === tally.month;
+      return q.client === rec.client && q.month === tally.month && q.from === 'hosps';
     });
     if (exists) return;
 
@@ -556,7 +556,36 @@ var APP = (function () {
                  DB.all('users')[0] || {}).name || '';
 
     DB.add('qi', {
-      agency: rec.agency, client: rec.client, clientName: rec.clientName, month: tally.month,
+      agency: rec.agency, client: rec.client, clientName: rec.clientName,
+      month: tally.month, from: 'hosps',
+      title: 'Repeat hospital stays — ' + rec.clientName,
+      opened: DB.stamp().slice(0, 11),
+      source: 'Auto — ' + tally.count + ' stays in ' + tally.monthLabel,
+      owner: owner, due: '', status: 'Open', auto: true, plan: ''
+    });
+    DB.log('System', 'Opened a quality item for ' + rec.clientName,
+      tally.count + ' hospital stays in ' + tally.monthLabel + ', threshold is ' + tally.limit);
+    toast('warn', 'A quality item opened by itself',
+      rec.clientName + ' has had ' + tally.count + ' hospital stays in ' + tally.monthLabel + '.');
+  }
+
+  /* A quality item opens itself once a client passes the monthly threshold.
+     One per client per month — recording a fourth incident does not open a fourth item. */
+  function openQIifOver(rec) {
+    var tally = DATA.incidentTally(rec.client, rec.when);
+    if (!tally.over) return;
+
+    var exists = DB.all('qi').some(function (q) {
+      return q.client === rec.client && q.month === tally.month && q.from === 'incidents';
+    });
+    if (exists) return;
+
+    var owner = (DB.all('users').filter(function (u) { return u.role === 'admin'; })[0] ||
+                 DB.all('users')[0] || {}).name || '';
+
+    DB.add('qi', {
+      agency: rec.agency, client: rec.client, clientName: rec.clientName,
+      month: tally.month, from: 'incidents',
       title: 'Repeat incidents — ' + rec.clientName,
       opened: DB.stamp().slice(0, 11),
       source: 'Auto — ' + tally.count + ' incidents in ' + tally.monthLabel,
@@ -1077,9 +1106,10 @@ var APP = (function () {
           b3    = num('th-b3', 1, 200),
           isp   = num('th-isp', 1, 100),
           chase = num('th-chase', 1, 365),
-          esc   = num('th-esc', 1, 365);
+          esc   = num('th-esc', 1, 365),
+          disch = num('th-disch', 1, 365);
 
-      if ([inc, hosp, b1, b2, b3, isp, chase, esc].some(function (v) { return v === null; })) {
+      if ([inc, hosp, b1, b2, b3, isp, chase, esc, disch].some(function (v) { return v === null; })) {
         toast('bad', 'One of these is not a number', 'Every rule needs a figure the system can count to.');
         return 'stay';
       }
@@ -1091,11 +1121,188 @@ var APP = (function () {
       t.qiFromIncidents = inc; t.qiFromHospitalStays = hosp;
       t.budgetAlerts = [b1, b2, b3];
       t.ispDropPoints = isp; t.incidentChaseDays = chase; t.escalateAfterDays = esc;
+      t.dischargeVisitDays = disch;
       DB.setSetting('thresholds', t);
 
       DB.log(user().name, 'Changed the automatic rules',
         inc + ' incidents · ' + b1 + '/' + b2 + '/' + b3 + '% budget · chase after ' + chase + ' days');
       toast('ok', 'Rules saved', 'They apply from now on, to records already in the system as well.');
+      return 'stay';
+    },
+
+    /* ---------------- hospital stays ---------------- */
+
+    'hosp.open':   function (S, el) { S.vars.hospId = el.getAttribute('data-id'); return null; },
+    'hosp.filter': function (S, el) { S.vars.hospFilter = el.getAttribute('data-filter'); return 'stay'; },
+
+    'hosp.notify': function (S, el) {
+      var who = el.getAttribute('data-who');
+      var list = (S.vars.hospNotify || ['Support coordinator', 'Family']).slice();
+      var at = list.indexOf(who);
+      if (at >= 0) list.splice(at, 1); else list.push(who);
+      S.vars.hospNotify = list;
+      return 'stay';
+    },
+
+    'hosp.review': function (S, el) {
+      var name = el.getAttribute('data-review');
+      var list = (S.vars.hospReviews || []).slice();
+      var at = list.indexOf(name);
+      if (at >= 0) list.splice(at, 1); else list.push(name);
+      S.vars.hospReviews = list;
+      return 'stay';
+    },
+
+    'hosp.add': function (S) {
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var c = DB.get('clients', val('hp-client'));
+      if (!c) { toast('bad', 'Pick a client', 'A stay happens to somebody.'); return 'stay'; }
+
+      var when = UI.readDate('hp-when');
+      if (!when) { toast('bad', 'When were they admitted?', 'Everything after this is dated from it.'); return 'stay'; }
+
+      var rec = DB.add('hosps', {
+        agency: c.agency, client: c.id, clientName: c.name,
+        kind: val('hp-kind') || 'Admission',
+        hospital: val('hp-where'),
+        admitted: when,
+        reason: val('hp-why'),
+        notified: (S.vars.hospNotify || ['Support coordinator', 'Family']).slice(),
+        discharged: null,
+        visitRequired: (DB.settings().thresholds || {}).nurseVisitAfterDischarge !== false,
+        visitDue: null,
+        nurse: null
+      });
+
+      S.vars.hospId = rec.id;
+      S.vars.hospNotify = null;
+      S.vars.hospFilter = 'all';
+      DB.log(user().name, 'Recorded a hospital stay for ' + c.name,
+        (val('hp-kind') || 'Admission') + ' · ' + (val('hp-where') || 'hospital not named'));
+      toast('ok', 'Stay recorded',
+        'Record the discharge when they come home and the nurse visit is scheduled from that date.');
+
+      openQIifOverStays(rec);
+    },
+
+    /* Discharge is what starts the clock on the follow-up visit. */
+    'hosp.discharge': function (S) {
+      var r = DB.get('hosps', S.vars.hospId);
+      if (!r) return 'stay';
+
+      var out = UI.readDate('hp-out');
+      if (!out) { toast('bad', 'When did they come home?', 'The visit falls due from that date.'); return 'stay'; }
+      if (UI.toISO(out) < UI.toISO(r.admitted)) {
+        toast('bad', 'That is before they were admitted', 'Check the two dates.'); return 'stay';
+      }
+
+      var days = (DB.settings().thresholds || {}).dischargeVisitDays || 3;
+      var due = UI.fromISO(new Date(Date.parse(UI.toISO(out)) + days * 86400000).toISOString().slice(0, 10));
+      var nurse = (document.getElementById('hp-nurse') || {}).value || r.nurse ||
+                  (DB.all('users').filter(function (u) { return u.role === 'nurse'; })[0] ||
+                   DB.all('users')[0] || {}).name || '';
+
+      DB.update('hosps', r.id, { discharged: out, visitDue: r.visitRequired ? due : null, nurse: nurse });
+      DB.log(user().name, 'Recorded discharge for ' + r.clientName,
+        r.visitRequired ? 'Nurse visit due ' + due + ' · ' + nurse : 'No nurse visit required');
+      toast('ok', r.clientName.split(' ')[0] + ' is home',
+        r.visitRequired ? 'The nurse visit is due ' + due + '. The stay stays open until it is done.'
+                        : 'No nurse visit is required, so the stay can be closed.');
+      return 'stay';
+    },
+
+    /* Waiving is allowed, but never silently. */
+    'hosp.waive': function (S) {
+      var r = DB.get('hosps', S.vars.hospId);
+      if (!r) return 'stay';
+      var why = (document.getElementById('hp-waive') || {}).value || '';
+      why = String(why).trim();
+      if (why.length < 5) {
+        toast('bad', 'Waiving needs a reason', 'It goes on the audit trail, so it has to say something.');
+        return 'stay';
+      }
+      DB.update('hosps', r.id, { visitWaived: { on: DB.stamp().slice(0, 11), by: user().name, reason: why } });
+      DB.log(user().name, 'Waived the nurse visit for ' + r.clientName, why);
+      toast('info', 'Nurse visit waived', 'The reason is on the record and in the audit trail.');
+      return 'stay';
+    },
+
+    /* The visit, and the reviews it asks for, which become real tasks. */
+    'hosp.visit.save': function (S) {
+      var r = DB.get('hosps', S.vars.hospId);
+      if (!r) return 'stay';
+      function val(id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; }
+
+      var on = UI.readDate('hv-on');
+      if (!on) { toast('bad', 'When was the visit?', 'That date is what stops the chase.'); return 'stay'; }
+      if (UI.toISO(on) < UI.toISO(r.discharged)) {
+        toast('bad', 'That is before they came home', 'A follow-up cannot happen first.'); return 'stay';
+      }
+
+      var by = val('hv-by') || r.nurse || user().name;
+      var wanted = (S.vars.hospReviews || []).slice();
+
+      DB.update('hosps', r.id, {
+        visit: { on: on, by: by,
+                 condition: val('hv-cond'),
+                 instructions: val('hv-inst'),
+                 meds: val('hv-meds'),
+                 orders: val('hv-orders'),
+                 reviews: wanted }
+      });
+
+      /* One task per review the nurse asked for, linked back to this stay. */
+      var due = UI.fromISO(new Date(Date.parse(UI.toISO(on)) + 14 * 86400000).toISOString().slice(0, 10));
+      wanted.forEach(function (name) {
+        DB.add('tasks', {
+          agency: r.agency,
+          title: 'Review ' + name + ' after hospital discharge',
+          linked: 'Hospitalisation · ' + r.clientName,
+          linkedId: r.id,
+          owner: by, due: due, status: 'Not started', priority: 'High', recurring: false
+        });
+      });
+
+      S.vars.hospReviews = null;
+      DB.log(user().name, 'Recorded the nurse visit for ' + r.clientName,
+        on + (wanted.length ? ' · ' + wanted.length + ' review' + (wanted.length === 1 ? '' : 's') + ' raised' : ' · no reviews needed'));
+      toast('ok', 'Visit recorded',
+        wanted.length
+          ? wanted.length + ' review task' + (wanted.length === 1 ? '' : 's') + ' created. The stay closes once they are done.'
+          : 'No reviews were needed, so the stay can be closed.');
+    },
+
+    'hosp.close': function (S) {
+      var r = DB.get('hosps', S.vars.hospId);
+      if (!r) return 'stay';
+      var st = DATA.hospState(r);
+
+      if (st.key === 'in') {
+        toast('bad', 'They are still in hospital', 'Record the discharge first.'); return 'stay';
+      }
+      if (st.key === 'visitDue' || st.key === 'visitLate') {
+        toast('bad', 'The nurse visit has not happened',
+          'Record it, or waive it with a reason. A stay is not closed just because somebody came home.');
+        return 'stay';
+      }
+      if (st.key === 'reviews') {
+        toast('bad', st.open + ' review' + (st.open === 1 ? '' : 's') + ' still outstanding',
+          'The nurse asked for these. Complete them in Tasks first.');
+        return 'stay';
+      }
+
+      DB.update('hosps', r.id, { closed: { on: DB.stamp().slice(0, 11), by: user().name } });
+      DB.log(user().name, 'Closed the hospital stay for ' + r.clientName, 'Returned to service');
+      toast('ok', r.clientName.split(' ')[0] + ' is back in service', 'The whole chain is on the record.');
+    },
+
+    'hosp.reopen': function (S) {
+      var r = DB.get('hosps', S.vars.hospId);
+      if (!r) return 'stay';
+      DB.update('hosps', r.id, { closed: null });
+      DB.log(user().name, 'Reopened the hospital stay for ' + r.clientName, 'Stay reopened');
+      toast('info', 'Reopened', 'Closing it again needs nothing re-typed.');
       return 'stay';
     },
 

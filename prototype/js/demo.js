@@ -179,27 +179,34 @@ var DEMO = (function () {
 
   /* ---------------- hospitalisations ---------------- */
 
+  /* Facts only. Where a stay stands — in hospital, nurse visit due or
+     overdue, reviews outstanding, closed — is worked out from which of
+     those records exist. */
   var HOSPS = [
     { id:'h1', agency:'ga', client:'c1', clientName:'Maria Lopez',
       kind:'Admission', hospital:'Piedmont Athens Regional',
       admitted:'12 Apr 2026, 21:10', reason:'Dizziness and suspected dehydration',
       discharged:'16 Apr 2026, 11:30', notified:['Support coordinator','Family','DDP'],
-      visitRequired:true, visitStatus:'Completed', visitDue:'19 Apr 2026', visitDone:'18 Apr 2026',
-      nurse:'Yvonne Pryce', status:'Closed' },
+      visitRequired:true, visitDue:'19 Apr 2026', nurse:'Yvonne Pryce',
+      visit:{ on:'18 Apr 2026', by:'Yvonne Pryce',
+              condition:'Stable, mobility reduced',
+              instructions:'Yes, with client and family',
+              meds:'New prescription started in hospital — a diuretic. Client reports light-headedness on standing.',
+              orders:'Increase fluid intake. Review blood pressure at the next GP appointment.',
+              reviews:['Healthcare Plan','Risk Mitigation Plan'] },
+      closed:{ on:'23 Apr 2026', by:'Renee Alcott' } },
 
     { id:'h2', agency:'ga', client:'c4', clientName:'Harold Bramlett',
       kind:'Admission', hospital:'Emory Decatur',
       admitted:'09 Apr 2026, 03:40', reason:'Shortness of breath',
-      discharged:'—', notified:['Support coordinator','Family'],
-      visitRequired:true, visitStatus:'Not yet due', visitDue:'—', visitDone:'—',
-      nurse:'Yvonne Pryce', status:'Open — awaiting discharge' },
+      discharged:null, notified:['Support coordinator','Family'],
+      visitRequired:true, visitDue:null, nurse:'Yvonne Pryce' },
 
     { id:'h3', agency:'ga', client:'c5', clientName:'Sylvia Trent',
       kind:'ER visit', hospital:'Northside Forsyth',
       admitted:'02 Apr 2026, 18:55', reason:'Laceration to forearm',
       discharged:'02 Apr 2026, 23:20', notified:['Support coordinator'],
-      visitRequired:true, visitStatus:'Overdue', visitDue:'09 Apr 2026', visitDone:'—',
-      nurse:'Yvonne Pryce', status:'Open — nurse visit overdue' }
+      visitRequired:true, visitDue:'09 Apr 2026', nurse:'Yvonne Pryce' }
   ];
 
   /* ---------------- quality improvement ---------------- */
@@ -267,9 +274,9 @@ var DEMO = (function () {
     { id:'t1', agency:'ga', title:'Complete nurse follow-up visit — Maria Lopez', linked:'Incident · Fall, 3 Apr',
       owner:'Yvonne Pryce', due:'10 Apr 2026', status:'Overdue', priority:'High', recurring:false },
     { id:'t2', agency:'ga', title:'Review Healthcare Plan after hospital discharge', linked:'Hospitalisation · Maria Lopez',
-      owner:'Yvonne Pryce', due:'23 Apr 2026', status:'Completed', priority:'High', recurring:false },
+      linkedId:'h1', owner:'Yvonne Pryce', due:'23 Apr 2026', status:'Completed', priority:'High', recurring:false },
     { id:'t3', agency:'ga', title:'Review Risk Mitigation Plan after hospital discharge', linked:'Hospitalisation · Maria Lopez',
-      owner:'Yvonne Pryce', due:'23 Apr 2026', status:'Completed', priority:'High', recurring:false },
+      linkedId:'h1', owner:'Yvonne Pryce', due:'23 Apr 2026', status:'Completed', priority:'High', recurring:false },
     { id:'t4', agency:'ga', title:'Renew CPR certification — Marcus Odell', linked:'Caregiver · Marcus Odell',
       owner:'Renee Alcott', due:'27 Feb 2026', status:'Overdue', priority:'Medium', recurring:false },
     { id:'t5', agency:'ga', title:'Monthly ISP progress entry — all Georgia clients', linked:'Recurring',

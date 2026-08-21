@@ -223,6 +223,8 @@
              'days is when a new follow-up falls due') +
         rule('th-esc', 'Escalate to a manager', 'After', t.escalateAfterDays,
              'days with nobody acting on it') +
+        rule('th-disch', 'Nurse visit after discharge', 'Within', t.dischargeVisitDays,
+             'days of the client coming home') +
       '</div>';
 
       h += '<div class="card"><div class="card-head"><h3>Nurse visit after a hospital stay</h3>' +

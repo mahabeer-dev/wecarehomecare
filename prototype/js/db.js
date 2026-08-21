@@ -22,7 +22,7 @@ var DB = (function () {
      stored is brought forward step by step — never thrown away. Somebody
      who has spent an hour setting the system up should lose that only when
      they ask to, by pressing Start again. */
-  var SCHEMA = 8;
+  var SCHEMA = 9;
 
   var state = null;
   var storageWorks = true;
@@ -112,6 +112,31 @@ var DB = (function () {
         delete i.status;
         delete i.ageDays;
         delete i.triggeredQI;
+      });
+      return st;
+    },
+
+    /* Hospital stays stopped carrying a written status, and gained the
+       discharge interval the follow-up visit is scheduled from. */
+    8: function (st) {
+      if (st.settings && st.settings.thresholds &&
+          st.settings.thresholds.dischargeVisitDays === undefined) {
+        st.settings.thresholds.dischargeVisitDays = 3;
+      }
+      (st.hosps || []).forEach(function (hp, n) {
+        if (!hp.id) hp.id = 'h-' + n;
+        if (hp.discharged === '\u2014') hp.discharged = null;
+        if (hp.visitDue === '\u2014') hp.visitDue = null;
+        if (hp.visitStatus === 'Completed' && !hp.visit) {
+          hp.visit = { on: hp.visitDone || hp.visitDue || '\u2014', by: hp.nurse || 'System',
+                       condition: '', instructions: '', meds: '', orders: '', reviews: [] };
+        }
+        if (/^Closed/.test(hp.status || '') && !hp.closed) {
+          hp.closed = { on: hp.visitDone || hp.discharged || '\u2014', by: hp.nurse || 'System' };
+        }
+        delete hp.status;
+        delete hp.visitStatus;
+        delete hp.visitDone;
       });
       return st;
     }

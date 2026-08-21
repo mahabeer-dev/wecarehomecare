@@ -96,12 +96,32 @@ var ALERTS = (function () {
                  when: DATA.money(calc.dollarsLeft) + ' left', goto:'budget.detail' });
     });
 
-    /* --- hospital stays awaiting a nurse visit --- */
+    /* --- hospital stays still moving through their chain --- */
     DATA.inAgency(DATA.HOSPS, agency).forEach(function (hp) {
-      if (hp.visitStatus !== 'Overdue') return;
-      out.push({ kind:'Overdue', what:'Nurse visit after discharge not done',
-                 who:hp.clientName + ' · ' + hp.kind + ' ' + hp.admitted.split(',')[0],
-                 when:'due ' + hp.visitDue, goto:'hosp.visit' });
+      var st = DATA.hospState(hp);
+      if (st.key === 'closed' || st.key === 'reviews') return;   /* reviews chase as tasks */
+
+      if (st.key === 'in') {
+        out.push({ kind:'Open', what:'In hospital — no discharge recorded',
+                   who:hp.clientName + ' · ' + hp.kind + ' ' + String(hp.admitted).split(',')[0],
+                   when:'since ' + String(hp.admitted).split(',')[0],
+                   setVar:'hospId', id:hp.id, goto:'hosp.detail' });
+        return;
+      }
+      if (st.key === 'visitDue' || st.key === 'visitLate') {
+        out.push({ kind: st.key === 'visitLate' ? 'Overdue' : 'Due soon',
+                   what:'Nurse visit after discharge not done',
+                   who:hp.clientName + ' · home ' + String(hp.discharged).split(',')[0] + ' · ' + (hp.nurse || '—'),
+                   when: st.key === 'visitLate' ? st.days + ' days late' : 'due ' + hp.visitDue,
+                   setVar:'hospId', id:hp.id, goto:'hosp.detail' });
+        return;
+      }
+      if (st.key === 'ready') {
+        out.push({ kind:'Open', what:'Stay ready to close',
+                   who:hp.clientName + ' · everything in the chain is done',
+                   when:'return to service',
+                   setVar:'hospId', id:hp.id, goto:'hosp.detail' });
+      }
     });
 
     /* Overdue ranks 0, which is falsy — an "|| 9" fallback here sorted the

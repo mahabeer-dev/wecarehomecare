@@ -31,7 +31,7 @@
     }).length;
     var unsetUp = rows.filter(function (r) { return !r.waiver || !r.agreement; }).length;
     var inHospital = rows.filter(function (r) {
-      return DATA.HOSPS.some(function (h) { return h.client === r.id && /^Open/.test(h.status || ''); });
+      return DATA.HOSPS.some(function (h) { return h.client === r.id && DATA.hospState(h).key === 'in'; });
     }).length;
 
     h += '<div class="card"><div class="filters">' +
